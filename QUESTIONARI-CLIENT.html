@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Qüestionari — Joieria Comas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital@0;1&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{ --ink:#221d15; --mut:#5c5344; --gold:#a9884f; --line:#dcd3c2; --cream:#faf6ef; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:#efe9dd; color:var(--ink); font-family:"Jost",sans-serif; font-weight:300; line-height:1.6; }
+  .sheet{ max-width:900px; margin:24px auto; background:var(--cream); border:1px solid var(--line); padding:clamp(24px,5vw,60px); }
+  header{ text-align:center; border-bottom:2px solid var(--ink); padding-bottom:22px; margin-bottom:30px; }
+  .brand{ font-family:"Bodoni Moda",serif; font-weight:500; font-size:30px; letter-spacing:.2em; }
+  .brand b{ color:var(--gold); }
+  .sub{ font-size:12px; letter-spacing:.24em; text-transform:uppercase; color:var(--mut); margin-top:8px; }
+  h2{ font-family:"Bodoni Moda",serif; font-weight:400; font-size:26px; margin:34px 0 6px; }
+  h2 span{ color:var(--gold); font-size:15px; font-family:"Jost"; letter-spacing:.2em; text-transform:uppercase; margin-right:10px; }
+  .q{ margin:16px 0; }
+  label{ display:block; font-size:14px; color:var(--ink); margin-bottom:6px; font-weight:400; }
+  label small{ color:var(--mut); font-weight:300; }
+  input[type=text], textarea{ width:100%; border:1px solid var(--line); background:#fff; border-radius:8px; padding:10px 12px; font-family:inherit; font-size:14px; color:var(--ink); }
+  textarea{ min-height:60px; resize:vertical; }
+  .row{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .checks{ display:flex; flex-wrap:wrap; gap:8px 18px; margin-top:6px; }
+  .checks label{ display:flex; align-items:center; gap:8px; font-size:14px; margin:0; cursor:pointer; }
+  .note{ background:#f2ead9; border-left:3px solid var(--gold); padding:12px 16px; font-size:13px; color:var(--mut); margin:10px 0 0; border-radius:0 8px 8px 0; }
+  footer{ margin-top:40px; border-top:1px solid var(--line); padding-top:18px; font-size:12px; color:var(--mut); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+  .toolbar{ max-width:900px; margin:16px auto 0; display:flex; gap:10px; justify-content:flex-end; }
+  .btn{ border:1px solid var(--ink); background:var(--ink); color:var(--cream); padding:10px 18px; border-radius:22px; font-family:inherit; font-size:12px; letter-spacing:.14em; text-transform:uppercase; cursor:pointer; }
+  .btn--ghost{ background:transparent; color:var(--ink); }
+  @media(max-width:640px){ .row{ grid-template-columns:1fr; } }
+  @media print{ body{ background:#fff; } .sheet{ border:0; margin:0; max-width:none; } .toolbar{ display:none; } input,textarea{ border-color:#bbb; } }
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <button class="btn" onclick="window.print()">Imprimir / Desar PDF</button>
+</div>
+<div class="sheet">
+  <header>
+    <div class="brand">C<b>O</b>MAS</div>
+    <div class="sub">Qüestionari per elaborar la pàgina web · Joieria Comas</div>
+  </header>
+
+  <p class="note">Emplena el que puguis. Com més detall i més material real (fotos, textos, dades),
+  més a mida quedarà la web. Els camps amb “opcional” no són imprescindibles.</p>
+
+  <h2><span>01</span>Marca i logotip</h2>
+  <div class="q"><label>Teniu el logotip en fitxer vectorial (SVG / AI / PDF) o d'alta resolució? On el podem aconseguir?</label><textarea></textarea></div>
+  <div class="row">
+    <div class="q"><label>Colors corporatius <small>(si en teniu)</small></label><input type="text" placeholder="p. ex. daurat, negre…"></div>
+    <div class="q"><label>Eslògan o frase de marca</label><input type="text"></div>
+  </div>
+
+  <h2><span>02</span>La casa i la història</h2>
+  <div class="row">
+    <div class="q"><label>Any de fundació exacte</label><input type="text" placeholder="1862 / 1841?"></div>
+    <div class="q"><label>Generacions al capdavant</label><input type="text"></div>
+  </div>
+  <div class="q"><label>Noms i rols de la família / equip <small>(qui voleu que aparegui)</small></label><textarea></textarea></div>
+  <div class="q"><label>Anècdotes, fites o premis que expliquin la vostra història</label><textarea></textarea></div>
+
+  <h2><span>03</span>Serveis del taller</h2>
+  <div class="q"><label>Llista completa de serveis (rellotgeria, joieria, gravats, restauració…) amb qualsevol detall (temps, garanties)</label><textarea></textarea></div>
+  <div class="q"><label>Feu pressupost / valoració de peces? Com?</label><input type="text"></div>
+
+  <h2><span>04</span>Productes i marques</h2>
+  <div class="q"><label>Marques oficials que voleu destacar</label>
+    <div class="checks">
+      <label><input type="checkbox"> Hugo Boss</label>
+      <label><input type="checkbox"> Daniel Wellington</label>
+      <label><input type="checkbox"> Pandora</label>
+      <label><input type="checkbox"> Altres:</label>
+    </div>
+    <input type="text" style="margin-top:8px" placeholder="Altres marques…">
+  </div>
+  <div class="q"><label>Materials i gammes (or, plata, pedres…) i rang de preus aproximat <small>(opcional)</small></label><textarea></textarea></div>
+
+  <h2><span>05</span>Fotografies i material</h2>
+  <div class="q"><label>Disposeu de fotos pròpies d'alta resolució? De què? (botiga, taller, equip, productes)</label><textarea></textarea></div>
+  <div class="q"><label>Podem fer una sessió de fotos, o utilitzem les de l'Instagram? Enllaç a la carpeta/drive si en teniu</label><textarea></textarea></div>
+
+  <h2><span>06</span>Funcionalitats de la web</h2>
+  <div class="q"><label>Què voleu que faci la web?</label>
+    <div class="checks">
+      <label><input type="checkbox"> Informar / presència</label>
+      <label><input type="checkbox"> Reserva de cita al taller</label>
+      <label><input type="checkbox"> Formulari de contacte</label>
+      <label><input type="checkbox"> Botiga online</label>
+      <label><input type="checkbox"> Àrea de client / login</label>
+      <label><input type="checkbox"> Newsletter</label>
+      <label><input type="checkbox"> Xat / consergeria</label>
+      <label><input type="checkbox"> Mapa i com arribar</label>
+    </div>
+  </div>
+  <div class="q"><label>Idiomes de la web</label>
+    <div class="checks">
+      <label><input type="checkbox"> Català</label>
+      <label><input type="checkbox"> Castellà</label>
+      <label><input type="checkbox"> Anglès</label>
+      <label><input type="checkbox"> Francès</label>
+    </div>
+  </div>
+
+  <h2><span>07</span>Dades de contacte <small>(confirmar)</small></h2>
+  <div class="row">
+    <div class="q"><label>Botiga 1 — adreça, telèfon, horari</label><textarea>Josep Comas · Pare Lluís Rodés, 15 · 972 84 26 96 · comasjoieria@hotmail.com</textarea></div>
+    <div class="q"><label>Botiga 2 — adreça, telèfon, horari</label><textarea>Joieria X. Comas · Pare Lluís Rodés, 19 · 972 84 07 17</textarea></div>
+  </div>
+  <div class="q"><label>Tallers (Vidreres, Salt) i xarxes socials a enllaçar</label><textarea>Vidreres · Pompeu Fabra, 13 — Salt · Major, 83 — Instagram @comasjoieria</textarea></div>
+
+  <h2><span>08</span>Estil i referències</h2>
+  <div class="q"><label>Webs o marques que us agraden (i per què)</label><textarea></textarea></div>
+  <div class="q"><label>Alguna cosa que NO voleu de cap manera</label><textarea></textarea></div>
+
+  <footer>
+    <span>Joieria Comas · Santa Coloma de Farners</span>
+    <span>Data: __________________</span>
+  </footer>
+</div>
+</body>
+</html>

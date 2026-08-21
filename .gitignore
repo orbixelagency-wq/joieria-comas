@@ -1,0 +1,11 @@
+# dependencies (not needed to run the site — server.mjs uses only built-in node modules)
+node_modules/
+
+# os / editor junk
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
+
+# design-lab temp (if regenerated)
+.claude-design/

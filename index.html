@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Joieria Comas — Joiers i rellotgers des de 1862 · Santa Coloma de Farners</title>
+<meta name="description" content="Casa familiar de joiers i rellotgers a Santa Coloma de Farners des de 1862. Taller propi de joieria i rellotgeria, rellotges oficials Hugo Boss i Daniel Wellington. Reparació, creació, transformació i gravats." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;0,6..96,600;0,6..96,700;0,6..96,900;1,6..96,400;1,6..96,500&family=Jost:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/main.css" />
+<link rel="stylesheet" href="css/ui.css" />
+</head>
+<body>
+<!--
+  DIRECTION CONTRACT — Joieria Comas · seed: brief-pinned (horological atelier)
+  THESIS: A 160-year watchmaking house told through the movement itself. A watch composes
+    as you scroll — the mechanism is the argument. Refuses the flat cream jewellery template.
+  OWN-WORLD: Cinematic near-black case (#0c0d10) for the horology chapters; warm ivory
+    (#f3ede2) editorial for heritage & catalogue. Brass-gold (#c39b53) is the single metal.
+    Bodoni Moda Didone display + Jost geometric UI. Hairline rules, engraved tracking.
+  STORY: Visitor sees a watch built before their eyes → learns it's a family house since
+    1862 with its OWN workshop → sees what the bench does → catalogue & brands → two shops.
+  FIRST VIEWPORT: Full-bleed watch composition on near-black, dead-centre; wordmark COMAS
+    small top-left; a scroll cue. The hero scrubs to scroll.
+  FORM: horological atelier / scroll-scrubbed movement.
+  FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+-->
+
+<a class="skip-link" href="#contingut">Vés al contingut</a>
+
+<!-- scroll progress -->
+<div class="scrollbar" id="scrollbar" aria-hidden="true"></div>
+
+<!-- reusable clock glyph (the O in the wordmark) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="glyph-clock" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" stroke-width="5"/>
+    <circle cx="50" cy="50" r="41" fill="none" stroke="currentColor" stroke-width="6"
+            stroke-dasharray="2.5 18.97" stroke-dashoffset="1.25" transform="rotate(-90 50 50)"/>
+    <line x1="50" y1="50" x2="50" y2="26" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+    <line x1="50" y1="50" x2="68" y2="59" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="50" cy="50" r="4.5" fill="currentColor"/>
+  </symbol>
+</svg>
+
+<!-- ============ NAV ============ -->
+<header class="nav" id="nav">
+  <a href="#top" class="nav__mark" aria-label="Joieria Comas, inici">
+    <span class="nav__mark-word">C<svg class="logo-clock" aria-hidden="true"><use href="#glyph-clock"/></svg>MAS</span>
+    <span class="nav__mark-since">EST. 1862</span>
+  </a>
+  <nav class="nav__links" aria-label="Navegació principal">
+    <a href="#casa">La casa</a>
+    <a href="#taller">El taller</a>
+    <a href="#colleccions">Col·leccions</a>
+    <a href="#botigues">Botigues</a>
+  </nav>
+  <div class="nav__actions">
+    <button type="button" class="nav__account" id="openAuth" aria-label="Àrea client · inicia sessió">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6 8-6s8 2 8 6"/>
+      </svg>
+    </button>
+    <a href="#botigues" class="nav__cta">Visita'ns</a>
+  </div>
+</header>
+
+<main id="contingut">
+
+<!-- ============ HERO ============ -->
+<section class="hero" id="top" aria-label="Composició d'un rellotge">
+  <div class="hero__pin">
+    <div class="hero__stage">
+      <div class="hero__bg" aria-hidden="true"><img src="assets/img/botiga-interior.jpg" alt="" /></div>
+      <div class="watch" id="watch">
+        <svg class="watch__svg" viewBox="0 0 600 600" role="img"
+             aria-label="Un rellotge que es munta peça a peça">
+          <defs>
+            <radialGradient id="gCase" cx="42%" cy="34%" r="78%">
+              <stop offset="0%" stop-color="#f4dd9f"/>
+              <stop offset="34%" stop-color="#d9b463"/>
+              <stop offset="66%" stop-color="#b48a3f"/>
+              <stop offset="100%" stop-color="#6f4f1e"/>
+            </radialGradient>
+            <radialGradient id="gCaseInner" cx="50%" cy="42%" r="70%">
+              <stop offset="0%" stop-color="#c69a52"/>
+              <stop offset="100%" stop-color="#8a6529"/>
+            </radialGradient>
+            <radialGradient id="gBezel" cx="40%" cy="32%" r="80%">
+              <stop offset="0%" stop-color="#e9edf2"/>
+              <stop offset="45%" stop-color="#aeb6bf"/>
+              <stop offset="100%" stop-color="#4d545d"/>
+            </radialGradient>
+            <radialGradient id="gDial" cx="46%" cy="40%" r="72%">
+              <stop offset="0%" stop-color="#f6ecd4"/>
+              <stop offset="58%" stop-color="#e7d5ac"/>
+              <stop offset="100%" stop-color="#c9b586"/>
+            </radialGradient>
+            <radialGradient id="gCrown" cx="50%" cy="50%" r="60%">
+              <stop offset="0%" stop-color="#f0d894"/>
+              <stop offset="100%" stop-color="#8a6529"/>
+            </radialGradient>
+            <linearGradient id="gGlint" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#ffffff" stop-opacity=".55"/>
+              <stop offset="42%" stop-color="#ffffff" stop-opacity="0"/>
+              <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+            </linearGradient>
+            <radialGradient id="gShadow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#000" stop-opacity=".55"/>
+              <stop offset="70%" stop-color="#000" stop-opacity=".28"/>
+              <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+            </radialGradient>
+            <linearGradient id="gHand" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#3a3f47"/>
+              <stop offset="100%" stop-color="#12151a"/>
+            </linearGradient>
+          </defs>
+
+          <ellipse class="wp" data-part="shadow" cx="300" cy="474" rx="190" ry="34" fill="url(#gShadow)"/>
+
+          <g class="wp" data-part="lugs" fill="url(#gCaseInner)">
+            <path d="M232 104 q-14 -30 6 -46 l40 0 q10 34 -6 54 z"/>
+            <path d="M368 104 q14 -30 -6 -46 l-40 0 q-10 34 6 54 z"/>
+            <path d="M232 496 q-14 30 6 46 l40 0 q10 -34 -6 -54 z"/>
+            <path d="M368 496 q14 30 -6 46 l-40 0 q-10 -34 6 54 z"/>
+          </g>
+
+          <g class="wp" data-part="crown">
+            <rect x="494" y="286" width="26" height="28" rx="5" fill="url(#gCrown)"/>
+            <rect x="497" y="289" width="3" height="22" fill="#7a5624" opacity=".5"/>
+            <rect x="503" y="289" width="3" height="22" fill="#7a5624" opacity=".5"/>
+            <rect x="509" y="289" width="3" height="22" fill="#7a5624" opacity=".5"/>
+            <rect x="486" y="292" width="12" height="16" rx="3" fill="url(#gCaseInner)"/>
+          </g>
+
+          <circle class="wp" data-part="case" cx="300" cy="300" r="196" fill="url(#gCase)"/>
+          <circle class="wp" data-part="case2" cx="300" cy="300" r="176" fill="url(#gCaseInner)"/>
+          <circle class="wp" data-part="bezel" cx="300" cy="300" r="162" fill="url(#gBezel)"/>
+          <circle class="wp" data-part="dial" cx="300" cy="300" r="146" fill="url(#gDial)"/>
+
+          <g class="wp" data-part="guilloche" fill="none" stroke="#b89f6f" stroke-opacity=".33">
+            <circle cx="300" cy="300" r="132" stroke-width="1"/>
+            <circle cx="300" cy="300" r="116" stroke-width="1"/>
+            <circle cx="300" cy="300" r="100" stroke-width="1"/>
+            <circle cx="300" cy="300" r="84" stroke-width="1"/>
+            <circle cx="300" cy="300" r="66" stroke-width="1"/>
+            <circle cx="300" cy="300" r="48" stroke-width="1"/>
+          </g>
+
+          <g class="wp" data-part="indices" fill="#3a2f18"></g>
+
+          <g class="wp" data-part="brand">
+            <text x="300" y="232" text-anchor="middle" fill="#5a4a24"
+                  font-family="'Bodoni Moda', serif" font-size="22" letter-spacing="4">COMAS</text>
+            <text x="300" y="252" text-anchor="middle" fill="#8a744a"
+                  font-family="'Jost', sans-serif" font-size="9" letter-spacing="3">SANTA COLOMA · 1862</text>
+            <circle cx="300" cy="388" r="34" fill="none" stroke="#b89f6f" stroke-opacity=".5"/>
+          </g>
+
+          <!-- hands drawn statically at 10:10 (no rotation transform) -->
+          <g class="wp wp--hand" data-part="hour" id="handHour">
+            <line x1="300" y1="300" x2="213" y2="250" stroke="#22262d" stroke-width="9" stroke-linecap="round"/>
+          </g>
+          <g class="wp wp--hand" data-part="minute" id="handMin">
+            <line x1="300" y1="300" x2="421" y2="230" stroke="#22262d" stroke-width="6.5" stroke-linecap="round"/>
+          </g>
+          <g class="wp wp--hand" data-part="second" id="handSec">
+            <line x1="300" y1="348" x2="300" y2="150" stroke="#c39b53" stroke-width="2.6" stroke-linecap="round"/>
+          </g>
+          <circle class="wp" data-part="pin" cx="300" cy="300" r="4.5" fill="#241d10"/>
+
+          <circle class="wp watch__glint" data-part="glint" cx="300" cy="300" r="146" fill="url(#gGlint)"/>
+        </svg>
+      </div>
+      <div class="hero__vignette" aria-hidden="true"></div>
+    </div>
+
+    <div class="hero__frame">
+      <div class="hero__emblem" data-hero="2">
+        <span class="hero__establert">Joieria &amp; Rellotgeria</span>
+        <h1 class="hero__logo" aria-label="Comas">
+          <span class="hero__logo-c">C</span><svg class="hero__logo-clock" aria-hidden="true"><use href="#glyph-clock"/></svg><span class="hero__logo-rest">MAS</span>
+        </h1>
+        <span class="hero__desde"><i></i>Santa Coloma de Farners · des de 1862<i></i></span>
+      </div>
+      <p class="hero__sub" data-hero="4">
+        Sis generacions muntant, reparant i creant al nostre propi taller.
+      </p>
+    </div>
+
+    <div class="hero__scrollcue" aria-hidden="true">
+      <span>Desplaça't</span>
+      <span class="hero__scrollcue-line"></span>
+    </div>
+
+    <div class="hero__counter" aria-hidden="true">
+      <span id="heroPct">00</span><span class="hero__counter-tot">/ muntatge complet</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HERITAGE / 1862 ============ -->
+<section class="casa" id="casa">
+  <div class="casa__year" aria-hidden="true">
+    <span data-year-digit>1</span><span data-year-digit>8</span><span data-year-digit>6</span><span data-year-digit>2</span>
+  </div>
+  <div class="casa__grid">
+    <div class="casa__lead">
+      <h2 class="reveal">Una nissaga que mesura el temps<br><em>des de fa més de 160 anys.</em></h2>
+    </div>
+    <div class="casa__body">
+      <p class="reveal">
+        La saga Comas obre com a joiers i rellotgers l'any <strong>1862</strong> —alguns
+        registres gremials situen les arrels encara més enllà, cap al 1841—. Des d'aleshores,
+        l'ofici s'ha traspassat de generació en generació sense sortir de la família.
+      </p>
+      <p class="reveal">
+        Avui la casa la regenten <strong>Xavier Comas</strong> i <strong>Josep Comas</strong>,
+        amb botiga a <strong>Santa Coloma de Farners</strong> i a <strong>Vidreres</strong>,
+        i taller propi de joieria i de rellotgeria.
+      </p>
+      <ul class="casa__facts reveal">
+        <li><span>1862</span> Origen com a joiers i rellotgers</li>
+        <li><span>6</span> Generacions al taller</li>
+        <li><span>2</span> Botigues · Santa Coloma i Vidreres</li>
+      </ul>
+    </div>
+  </div>
+  <figure class="casa__photo reveal">
+    <img src="assets/img/botiga-taulell.jpg" alt="Interior de la botiga de Joieria Comas a Santa Coloma de Farners" loading="lazy" />
+  </figure>
+</section>
+
+<!-- ============ TRANSITION — 3D atelier plates converge ============ -->
+<section class="wipe" aria-hidden="true">
+  <div class="wipe__pin">
+    <div class="wipe__scene" id="wipeScene">
+      <span class="plate" style="--x:-34%; --y:-30%; --z:-520px; --r:-16deg; --d:1.15"></span>
+      <span class="plate" style="--x:32%;  --y:-34%; --z:-360px; --r:13deg;  --d:0.9"></span>
+      <span class="plate" style="--x:-40%; --y:24%;  --z:-260px; --r:9deg;   --d:1.05"></span>
+      <span class="plate" style="--x:38%;  --y:28%;  --z:-440px; --r:-11deg; --d:1.25"></span>
+      <span class="plate" style="--x:-20%; --y:-6%;  --z:-680px; --r:6deg;   --d:1.4"></span>
+      <span class="plate" style="--x:24%;  --y:4%;   --z:-580px; --r:-7deg;  --d:1.3"></span>
+    </div>
+    <p class="wipe__word"><span>El</span> <em>taller</em></p>
+    <div class="wipe__floor"></div>
+  </div>
+</section>
+
+<!-- ============ WORKSHOP ============ -->
+<section class="taller" id="taller">
+  <div class="taller__intro">
+    <h2 class="reveal">Tot es fa a casa.<br><em>Sense intermediaris.</em></h2>
+    <p class="reveal">
+      El que ens diferencia és senzill: disposem de taller propi de joieria i de
+      rellotgeria tècnica. La peça no marxa mai lluny de qui la treballa.
+    </p>
+  </div>
+
+  <ol class="bench" aria-label="Serveis del taller">
+    <li class="bench__item">
+      <span class="bench__no">i</span>
+      <div class="bench__txt">
+        <h3>Rellotgeria tècnica</h3>
+        <p>Des de maquinària antiga de corda i de paret fins a l'automàtic i el quars
+        moderns. Canvi de vidres i piles, ajust d'hermetisme i posada a punt de calibres
+        mecànics complexos.</p>
+      </div>
+    </li>
+    <li class="bench__item">
+      <span class="bench__no">ii</span>
+      <div class="bench__txt">
+        <h3>Creació i transformació</h3>
+        <p>Dissenyem peces des de zero i transformem joies heretades: fonem o modifiquem
+        l'or antic de la família per donar-li una estètica actual, al gust de qui la porta.</p>
+      </div>
+    </li>
+    <li class="bench__item">
+      <span class="bench__no">iii</span>
+      <div class="bench__txt">
+        <h3>Neteja i restauració</h3>
+        <p>Neteja per ultrasons i poliment professional de peces d'or i de plata per
+        retornar-los la brillantor original.</p>
+      </div>
+    </li>
+    <li class="bench__item">
+      <span class="bench__no">iv</span>
+      <div class="bench__txt">
+        <h3>Gravats personalitzats</h3>
+        <p>Maquinària pròpia per gravar noms, dates i inicials en aliances, anells de
+        compromís o al revers dels rellotges.</p>
+      </div>
+    </li>
+  </ol>
+</section>
+
+<!-- ============ COLLECTIONS ============ -->
+<section class="colleccions" id="colleccions">
+  <header class="colleccions__head">
+    <h2 class="reveal">Col·leccions</h2>
+    <p class="reveal">Alta joieria clàssica i les firmes del moment, escollides una a una.</p>
+  </header>
+
+  <div class="carousel" id="carousel">
+    <div class="carousel__track" id="carTrack">
+      <article class="cslide" data-slot>
+        <img src="assets/products/daniel-wellington.jpg" alt="Rellotges Daniel Wellington" draggable="false" />
+        <span class="cslide__badge">Rellotges</span>
+        <div class="cslide__cap"><h3>Daniel Wellington</h3><p>Col·leccions oficials</p></div>
+      </article>
+      <article class="cslide" data-slot>
+        <img src="assets/products/anell-compromis.jpg" alt="Anells de compromís en or de 18 quirats" draggable="false" />
+        <span class="cslide__badge">Or 18k</span>
+        <div class="cslide__cap"><h3>Anells de compromís</h3><p>Or de 18 quirats · 750</p></div>
+      </article>
+      <article class="cslide" data-slot>
+        <img src="assets/products/anell-cranc.jpg" alt="Peça d'autor del taller" draggable="false" />
+        <span class="cslide__badge">Taller</span>
+        <div class="cslide__cap"><h3>Peces d'autor</h3><p>Creacions úniques</p></div>
+      </article>
+      <article class="cslide" data-slot>
+        <img src="assets/products/collaret.jpg" alt="Collarets de plata de primera llei" draggable="false" />
+        <span class="cslide__badge">Plata</span>
+        <div class="cslide__cap"><h3>Collarets i penjolls</h3><p>Plata de primera llei</p></div>
+      </article>
+    </div>
+    <div class="carousel__drag" id="carDrag" aria-hidden="true"></div>
+  </div>
+  <div class="carousel__ui">
+    <button class="car-btn" id="carPrev" type="button" aria-label="Anterior">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+    </button>
+    <span class="carousel__hint">Arrossega</span>
+    <button class="car-btn" id="carNext" type="button" aria-label="Següent">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+    </button>
+  </div>
+
+  <p class="showcase__intro reveal">Les firmes oficials de la casa — passa-hi el ratolí o toca per obrir-les.</p>
+  <div class="showcase" id="showcase">
+    <article class="sc-panel is-active" data-slot tabindex="0" aria-label="Hugo Boss">
+      <img class="sc-bg" src="assets/products/rellotge-boss.jpg" alt="" draggable="false" />
+      <div class="sc-inner">
+        <p class="sc-label">Rellotges oficials</p>
+        <h3>Hugo Boss</h3>
+        <p class="sc-desc">Rellotges Hugo Boss de disseny contemporani —cronògrafs i acer— incorporats oficialment a la casa.</p>
+        <ul class="sc-tags"><li>Rellotges</li><li>Cronògrafs</li><li>Acer</li></ul>
+      </div>
+    </article>
+
+    <article class="sc-panel" data-slot tabindex="0" aria-label="Daniel Wellington">
+      <img class="sc-bg" src="assets/products/daniel-wellington.jpg" alt="" draggable="false" />
+      <div class="sc-inner">
+        <p class="sc-label">Col·leccions oficials</p>
+        <h3>Daniel Wellington</h3>
+        <p class="sc-desc">El rellotge de disseny minimalista i urbà, amb corretges intercanviables, incorporat oficialment a la casa.</p>
+        <ul class="sc-tags"><li>Rellotges</li><li>Corretges</li><li>Minimalista</li></ul>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- ============ SHOPS ============ -->
+<section class="botigues" id="botigues">
+  <div class="botigues__bg" aria-hidden="true">
+    <img src="assets/img/botiga-interior.jpg" alt="" loading="lazy" />
+  </div>
+  <header class="botigues__head">
+    <h2 class="reveal">Dues botigues, la mateixa família</h2>
+    <p class="reveal">A Santa Coloma de Farners i a Vidreres.</p>
+  </header>
+
+  <div class="shops">
+    <article class="shop">
+      <h3>Santa Coloma de Farners</h3>
+      <address>Carrer Pare Lluís Rodés, 15<br>17430 Santa Coloma de Farners, Girona</address>
+      <dl class="shop__hours">
+        <div><dt>Dilluns – Dissabte</dt><dd>09:30 – 15:30 · 17:00 – 20:30</dd></div>
+        <div><dt>Dimarts matí</dt><dd>Tancat</dd></div>
+      </dl>
+      <div class="shop__contact">
+        <a href="tel:+34972842696">972 84 26 96</a>
+        <a href="mailto:comasjoieria@hotmail.com">comasjoieria@hotmail.com</a>
+      </div>
+    </article>
+
+    <article class="shop">
+      <h3>Vidreres</h3>
+      <address>Carrer Pompeu Fabra, 13<br>17411 Vidreres, Girona</address>
+      <dl class="shop__hours">
+        <div><dt>Horari</dt><dd>Consulteu-nos</dd></div>
+      </dl>
+      <div class="shop__contact">
+        <a href="mailto:comasjoieria@hotmail.com">comasjoieria@hotmail.com</a>
+      </div>
+    </article>
+  </div>
+</section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="foot" id="foot">
+  <div class="foot__mark">
+    <span class="foot__word">C<svg class="logo-clock" aria-hidden="true"><use href="#glyph-clock"/></svg>MAS</span>
+    <span class="foot__since">Joiers i rellotgers · des de 1862</span>
+  </div>
+  <div class="foot__cols">
+    <div class="foot__col">
+      <h4>Contacte</h4>
+      <a href="tel:+34972842696">+34 972 84 26 96</a>
+      <a href="tel:+34972840717">+34 972 84 07 17</a>
+      <a href="mailto:comasjoieria@hotmail.com">comasjoieria@hotmail.com</a>
+    </div>
+    <div class="foot__col">
+      <h4>Segueix-nos</h4>
+      <a href="https://www.instagram.com/comasjoieria/" target="_blank" rel="noopener">Instagram @comasjoieria</a>
+      <a href="https://www.joieriacomas.com/" target="_blank" rel="noopener">joieriacomas.com</a>
+    </div>
+    <div class="foot__col">
+      <h4>On som</h4>
+      <span>Carrer Pare Lluís Rodés, 15 &amp; 19</span>
+      <span>17430 Santa Coloma de Farners</span>
+      <span>Girona · Catalunya</span>
+    </div>
+  </div>
+  <p class="foot__legal">
+    <span>© <span id="year"></span> Joieria Comas. Tots els drets reservats.</span>
+    <span>Fet amb ofici a la Selva.</span>
+  </p>
+</footer>
+
+<!-- ============ AUTH MODAL (demo visual) ============ -->
+<div class="auth" id="auth" aria-hidden="true">
+  <div class="auth__backdrop" data-auth-close></div>
+  <div class="auth__card" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <button class="auth__x" type="button" aria-label="Tanca" data-auth-close>
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <span class="auth__mark">COMAS</span>
+    <h2 class="auth__title" id="authTitle">Àrea client</h2>
+    <p class="auth__sub">Desa les teves peces preferides, encàrrecs i cites del taller.</p>
+
+    <div class="auth__providers">
+      <button class="auth__btn" type="button" data-provider="Google">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+          <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5a5.6 5.6 0 0 1-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.8z"/>
+          <path fill="#34A853" d="M12 24c3.2 0 6-1.1 7.9-2.9l-3.9-3c-1 .7-2.4 1.1-4 1.1-3 0-5.6-2-6.6-4.8H1.4v3.1A12 12 0 0 0 12 24z"/>
+          <path fill="#FBBC05" d="M5.4 14.4a7.2 7.2 0 0 1 0-4.6V6.7H1.4a12 12 0 0 0 0 10.8l4-3.1z"/>
+          <path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.5 1.8l3.4-3.4A12 12 0 0 0 1.4 6.7l4 3.1C6.4 6.8 9 4.8 12 4.8z"/>
+        </svg>
+        Continua amb Google
+      </button>
+      <button class="auth__btn" type="button" data-provider="Apple">
+        <svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor" aria-hidden="true">
+          <path d="M16.4 12.6c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.8-3.5.8s-1.8-.8-3-.8c-1.5 0-3 .9-3.8 2.3-1.6 2.8-.4 7 1.2 9.3.8 1.1 1.7 2.4 2.9 2.3 1.2 0 1.6-.7 3-.7s1.8.7 3 .7 2-1.1 2.8-2.2c.9-1.3 1.2-2.5 1.3-2.6-.1 0-2.5-1-2.5-3.9zM14.1 5.6c.6-.8 1-1.9.9-3-.9 0-2 .6-2.7 1.4-.6.7-1.1 1.8-1 2.8 1 .1 2.1-.5 2.8-1.2z"/>
+        </svg>
+        Continua amb Apple
+      </button>
+    </div>
+
+    <div class="auth__or"><span>o amb el teu correu</span></div>
+
+    <form class="auth__form" id="authForm" novalidate>
+      <label class="auth__field">
+        <span>Correu electrònic</span>
+        <input type="email" name="email" placeholder="tu@correu.com" autocomplete="email" required />
+      </label>
+      <button class="auth__submit" type="submit">Continua</button>
+    </form>
+
+    <p class="auth__note" id="authNote" hidden></p>
+    <p class="auth__legal">
+      En continuar acceptes les condicions del servei. <br>
+      <strong>Demostració visual</strong> — l'inici de sessió real requereix configuració (README).
+    </p>
+  </div>
+</div>
+
+<!-- ============ CONCIERGE CHATBOT ============ -->
+<button class="cbot__fab" id="cbotFab" type="button" aria-label="Obre la consergeria Comas">
+  <svg class="cbot__fab-open" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 11.5a8.5 8.5 0 0 1-12.2 7.7L3 21l1.9-5.7A8.5 8.5 0 1 1 21 11.5z"/>
+  </svg>
+  <svg class="cbot__fab-close" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+</button>
+
+<section class="cbot" id="cbot" aria-hidden="true" aria-live="polite">
+  <header class="cbot__head">
+    <div>
+      <p class="cbot__name">Consergeria Comas</p>
+      <p class="cbot__status"><span class="cbot__dot"></span> Responem de seguida</p>
+    </div>
+    <button class="cbot__min" id="cbotMin" type="button" aria-label="Tanca la consergeria">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
+  </header>
+  <div class="cbot__log" id="cbotLog"></div>
+  <div class="cbot__chips" id="cbotChips"></div>
+  <form class="cbot__form" id="cbotForm">
+    <input type="text" id="cbotInput" placeholder="Escriu la teva pregunta…" autocomplete="off" aria-label="Escriu un missatge" />
+    <button type="submit" aria-label="Envia">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l16-8-6 16-3-6-7-2z"/></svg>
+    </button>
+  </form>
+</section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="js/main.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>
