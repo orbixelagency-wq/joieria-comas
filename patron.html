@@ -786,6 +786,125 @@ function matSolid(color,{rough,metal,side}={}){
   if(S.env.grano && fabricBump && (metal==null || metal<0.4)){ mat.bumpMap=fabricBump; mat.bumpScale=0.009*f.grain; }
   return mat;
 }
+
+/* ---------- PRENDA PLANA CON VOLUMEN (silueta extruida) ---------------- */
+/* La prenda es su silueta (delante + detrás cosidos por el canto) con poco
+   grosor. Gira en 360° y se le ve la costura, pero nunca parece un cuerpo.  */
+function shade(hex,d){
+  const c=(hex||'#888888').replace('#','');
+  let r=parseInt(c.slice(0,2),16), g=parseInt(c.slice(2,4),16), b=parseInt(c.slice(4,6),16);
+  r=clamp(r+d,0,255); g=clamp(g+d,0,255); b=clamp(b+d,0,255);
+  return '#'+[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('');
+}
+function matFaceTex(canvas){
+  const t=new THREE.CanvasTexture(canvas); t.anisotropy=8;
+  if('outputEncoding' in renderer) t.encoding=THREE.sRGBEncoding;
+  const f=FABRICS[S.fabric];
+  const mat=new THREE.MeshStandardMaterial({map:t, roughness:f.rough, metalness:f.sheen*0.15, side:THREE.FrontSide});
+  if(S.env.grano && fabricBump){ mat.bumpMap=fabricBump; mat.bumpScale=0.012*f.grain; }
+  return mat;
+}
+/* tapa (cara) de la silueta, a una profundidad z, con UV hacia la textura de cara */
+function capGeomFlat(P, largo, z, minX, maxX, flip){
+  const shape=new THREE.Shape();
+  P.forEach((p,i)=>{ const sx=p[0]*SCALE, sy=(largo-p[1])*SCALE; i?shape.lineTo(sx,sy):shape.moveTo(sx,sy); });
+  shape.closePath();
+  const g=new THREE.ShapeGeometry(shape);
+  const pos=g.attributes.position, uv=new Float32Array(pos.count*2), span=(maxX-minX)||1;
+  for(let i=0;i<pos.count;i++){
+    const X=pos.getX(i), Y=pos.getY(i);
+    const x=X/SCALE, y=largo - Y/SCALE;
+    let u=(x-minX)/span; const v=1-clamp(y/largo,0,1);
+    if(flip) u=1-u;
+    uv[i*2]=u; uv[i*2+1]=v; pos.setZ(i,z);
+  }
+  g.setAttribute('uv', new THREE.BufferAttribute(uv,2));
+  if(flip && g.index){ const a=g.index.array; for(let i=0;i<a.length;i+=3){ const t=a[i+1]; a[i+1]=a[i+2]; a[i+2]=t; } g.index.needsUpdate=true; }
+  pos.needsUpdate=true; g.computeVertexNormals(); return g;
+}
+/* canto (costura perimetral) que une delante y detrás */
+function wallGeomFlat(P, largo, hd){
+  const pos=[], idx=[], N=P.length;
+  for(let i=0;i<N;i++){
+    const a=P[i], b=P[(i+1)%N];
+    const ax=a[0]*SCALE, ay=(largo-a[1])*SCALE, bx=b[0]*SCALE, by=(largo-b[1])*SCALE;
+    const base=pos.length/3;
+    pos.push(ax,ay,hd, bx,by,hd, bx,by,-hd, ax,ay,-hd);
+    idx.push(base,base+1,base+2, base,base+2,base+3);
+  }
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+  g.setAttribute('uv',new THREE.Float32BufferAttribute(new Array((pos.length/3)*2).fill(0),2));
+  g.setIndex(idx); g.computeVertexNormals(); return g;
+}
+function buildFlatGarment(m, add, refit){
+  const P = outline('front');
+  let minX=1e9, maxX=-1e9; P.forEach(p=>{ if(p[0]<minX)minX=p[0]; if(p[0]>maxX)maxX=p[0]; });
+  const largo=m.largo, depth=clamp(largo*0.04,2,4.5), hd=depth/2*SCALE;
+  add(capGeomFlat(P,largo, hd,minX,maxX,false), matFaceTex(faceArtCanvas('front',P,minX,maxX,largo)));
+  add(capGeomFlat(P,largo,-hd,minX,maxX,true ), matFaceTex(faceArtCanvas('back', P,minX,maxX,largo)));
+  add(wallGeomFlat(P,largo,hd), matSolid(shade(S.colors.cuerpo,-20),{rough:.96,side:THREE.DoubleSide}));
+  if(refit){ camDolly.y=largo*0.5*SCALE; drag.dist=largo*SCALE*(isTop()?4.4:4.0); }
+  const w=isTop()?m.pecho:m.cadera;
+  shadow.scale.set(w*SCALE*2.4, depth*SCALE*5, 1);
+}
+/* lienzo de una cara (delante/detrás) con la silueta P, para texturizar la tapa */
+function faceArtCanvas(face,P,minX,maxX,largo){
+  const W=Math.max(8,Math.round((maxX-minX)*PPC)), H=Math.max(8,Math.round(largo*PPC));
+  const c=document.createElement('canvas'); c.width=W; c.height=H;
+  paintFace(c.getContext('2d'), face, (cx,cy)=>[(cx-minX)*PPC, cy*PPC], P);
+  return c;
+}
+/* pintado de una cara: relleno + tejido + arte + paneles + detalles + cuello.
+   proj: cm→px · clipP: polígono al que recortar (silueta de la pieza).        */
+function paintFace(x, face, proj, clipP){
+  const m=measures(), p=panelSize();
+  const sc=proj(1,0)[0]-proj(0,0)[0];
+  x.save();
+  x.beginPath(); clipP.forEach((q,i)=>{const s=proj(q[0],q[1]); i?x.lineTo(s[0],s[1]):x.moveTo(s[0],s[1]);}); x.closePath(); x.clip();
+  // base
+  const o0=proj(-500,-500), o1=proj(500,m.largo+500);
+  x.fillStyle=S.colors.cuerpo;
+  x.fillRect(Math.min(o0[0],o1[0]),Math.min(o0[1],o1[1]),Math.abs(o1[0]-o0[0]),Math.abs(o1[1]-o0[1]));
+  // tejido + arte (panel centrado en x=0)
+  const fc=faceCanvas(face), fx=fc.getContext('2d');
+  fx.clearRect(0,0,fc.width,fc.height); drawFabric(fx,fc.width,fc.height,S.colors.cuerpo); drawLayers(fx,face,PPC,false);
+  const tl=proj(-p.w/2,0); x.drawImage(fc, tl[0], tl[1], p.w*sc, p.h*sc);
+  // mangas contraste
+  if(isTop() && S.colors.mangas){ const shX=m.hombro/2; x.fillStyle=S.colors.mangas;
+    let a=proj(-500,0), b=proj(-shX,m.largo); x.fillRect(a[0],a[1],b[0]-a[0],b[1]-a[1]);
+    a=proj(shX,0); b=proj(500,m.largo); x.fillRect(a[0],a[1],b[0]-a[0],b[1]-a[1]);
+  }
+  // canalé del bajo
+  if(S.det.rib||TYPES[S.type].def.rib){ const a=proj(-500,m.largo-5), b=proj(500,m.largo); x.fillStyle=S.colors.rib; x.fillRect(a[0],a[1],b[0]-a[0],b[1]-a[1]); }
+  drawDetails(x, face, proj, m, sc);
+  // línea de cuello
+  if(isTop()){
+    const nW=m.cuelloA/2, nD=face==='front'?m.cuelloP:Math.max(2,m.cuelloP*0.3);
+    const a=proj(-nW*0.96,1.9), b=proj(0,nD+2.4), c=proj(nW*0.96,1.9);
+    x.strokeStyle='rgba(20,22,26,.5)'; x.lineWidth=Math.max(1,0.22*sc);
+    x.beginPath(); x.moveTo(a[0],a[1]); x.quadraticCurveTo(b[0],b[1]-0.6*sc,b[0],b[1]); x.quadraticCurveTo(c[0],c[1]+0.6*sc,c[0],c[1]); x.stroke();
+  }
+  x.restore();
+}
+/* indicaciones de construcción dibujadas (planas): bolsillos, tapeta, etc. */
+function drawDetails(x, face, proj, m, sc){
+  const seam='rgba(0,0,0,.30)';
+  const line=(x1,y1,x2,y2,w,col)=>{ const a=proj(x1,y1),b=proj(x2,y2); x.strokeStyle=col; x.lineWidth=Math.max(1,w*sc); x.beginPath(); x.moveTo(a[0],a[1]); x.lineTo(b[0],b[1]); x.stroke(); };
+  const dot=(cx,cy,r,col)=>{ const a=proj(cx,cy); x.fillStyle=col; x.beginPath(); x.arc(a[0],a[1],Math.max(1.5,r*sc),0,7); x.fill(); };
+  const box=(cx,cy,w,h,col)=>{ const a=proj(cx-w/2,cy), b=proj(cx+w/2,cy+h); x.strokeStyle=col; x.lineWidth=Math.max(1,0.35*sc); x.strokeRect(a[0],a[1],b[0]-a[0],b[1]-a[1]); };
+  if(isTop()){
+    if(S.det.cremallera) line(0,2,0,m.largo,0.5,'rgba(0,0,0,.45)');
+    if(S.det.bolsillo && face==='front') box(0, m.largo*0.5, Math.min(m.pecho*0.72,34), Math.min(m.largo*0.3,26), seam);
+    if(S.type==='polo' && face==='front'){ line(0,1,0,13,0.5,seam); dot(0,6,0.7,S.colors.avios); dot(0,10.5,0.7,S.colors.avios); }
+    if(S.det.botones && face==='front'){ line(0,1,0,m.largo,0.4,seam); for(let i=0;i<5;i++) dot(0,6+i*8,0.7,S.colors.avios); }
+    if(S.det.cordones && S.det.capucha){ dot(-3.5,2.5,0.6,S.colors.rib); dot(3.5,2.5,0.6,S.colors.rib); }
+  } else {
+    line(0,m.tiro,0,m.largo,0.4,seam);                    // entrepierna
+    if(S.det.bolsillos){ box(-m.cadera*0.26,m.tiro*0.55,11,13,seam); box(m.cadera*0.26,m.tiro*0.55,11,13,seam); }
+    if(S.det.cordones){ dot(-2.5,1.6,0.6,S.colors.rib); dot(2.5,1.6,0.6,S.colors.rib); }
+  }
+}
 function partialLoft(levels, t0, t1, expand, seg){
   seg = seg||28;
   const pos=[],uv=[],idx=[],L=levels.length;
@@ -836,156 +955,18 @@ function build(){
   while(root.children.length){
     const c = root.children[0];
     if(c.geometry) c.geometry.dispose();
-    if(c.material && c.material !== undefined) c.material.dispose();
+    if(c.material){
+      const mm=c.material;
+      if(mm.map && mm.map!==tex && mm.map!==reliefTex && mm.map!==fabricBump) mm.map.dispose();
+      mm.dispose();
+    }
     root.remove(c);
   }
-  buildTextures();
   const m = measures(), T = TYPES[S.type], d = S.det;
   const fitKey = S.type+'|'+S.size, refit = (S._fit !== fitKey); S._fit = fitKey;
-  const art = matArt();
-  const ribCol = matSolid(S.colors.rib,{rough:.95});
-  const trim  = matSolid(S.colors.avios,{rough:.35,metal:.65});
   const add = (g,mat)=>{const me=new THREE.Mesh(g,mat);root.add(me);return me;};
 
-  if(isTop()){
-    const lv = topLevels(m), M = lv.meta;
-    const body = loft(lv,{uv:'wrap'});
-    dipNeck(body, m.largo, Math.max(0,m.cuelloP-2.5));
-    add(body, art);
-    add(capGeom(lv[0],true), matSolid(S.colors.interior,{rough:1}));
-
-    /* ---- mangas ---- */
-    if(T.def.manga!=='sin'){
-      const ang = (T.def.fit==='oversize') ? 0.80 : 0.62;
-      const rA = solveA(m.sisa*1.06,1), rB = solveA(m.bicep*0.86,1);
-      const N=16, slv=[];
-      for(let i=0;i<N;i++){const t=i/(N-1);slv.push({y:t*m.manga, a:rA+(rB-rA)*t, b:rA+(rB-rA)*t});}
-      [-1,1].forEach(side=>{
-        const g = loft(slv,{uv:'planar',minX:-rA,maxX:rA,seg:32,vFlat:0});
-        const q = new THREE.Quaternion().setFromUnitVectors(
-          new THREE.Vector3(0,1,0), new THREE.Vector3(side*Math.sin(ang),-Math.cos(ang),0).normalize());
-        const mtx = new THREE.Matrix4().makeRotationFromQuaternion(q);
-        mtx.setPosition(side*(m.hombro/2)*0.97*SCALE, (m.largo-4.2)*SCALE, 0);
-        g.applyMatrix4(mtx);
-        const sm = add(g, matSolid(S.colors.mangas||S.colors.cuerpo));
-        if(d.rib||T.def.rib){
-          const cf=[{y:m.manga-4,a:rB*1.02,b:rB*1.02},{y:m.manga+0.6,a:rB*0.86,b:rB*0.86}];
-          const cg = loft(cf,{uv:'planar',minX:-rB,maxX:rB,seg:32,vFlat:0});
-          cg.applyMatrix4(mtx); add(cg, ribCol);
-        }
-        if(d.cintaLateral){
-          const pts=[];for(let i=0;i<N;i++){const t=i/(N-1);pts.push([0,t*m.manga,-(rA+(rB-rA)*t)-0.25]);}
-          const rg = ribbon(pts,2.2); rg.applyMatrix4(mtx); add(rg, matSolid(S.colors.rib,{rough:.9}));
-        }
-      });
-    }
-    /* ---- bajo, cuello, capucha ---- */
-    if(d.rib||T.def.rib){
-      const a0=lv[0].a, b0=lv[0].b;
-      add(loft([{y:-0.4,a:a0*0.94,b:b0*0.94},{y:5.5,a:a0*1.01,b:b0*1.01}],{uv:'planar',minX:-a0,maxX:a0,vFlat:0}), ribCol);
-    }
-    const top = lv[lv.length-1];
-    const collar = loft([{y:m.largo-0.6,a:top.a*1.03,b:top.b*1.03},{y:m.largo+2.2,a:top.a*1.02,b:top.b*1.02}],
-      {uv:'planar',minX:-top.a,maxX:top.a,vFlat:0});
-    dipNeck(collar, m.largo, Math.max(0,m.cuelloP-2.5));
-    add(collar, ribCol);
-
-    if(d.capucha){
-      const aN=top.a, H=[];
-      for(let i=0;i<16;i++){
-        const t=i/15, y=m.largo+t*30;
-        const w = aN*(1.02+0.55*Math.sin(t*Math.PI*0.92));
-        H.push({y, a:w, b:w*0.88, cz:-t*t*7});
-      }
-      const hg = loft(H,{uv:'planar',minX:-aN*1.6,maxX:aN*1.6,vFlat:0});
-      const hp = hg.attributes.position;
-      for(let i=0;i<hp.count;i++){
-        const y=hp.getY(i)/SCALE, t=clamp((y-m.largo)/30,0,1);
-        hp.setZ(i, hp.getZ(i) - (t*t*7)*SCALE);
-      }
-      hp.needsUpdate=true; hg.computeVertexNormals();
-      add(hg, matSolid(S.colors.cuerpo));
-    }
-    /* ---- bolsillo canguro ---- */
-    if(d.bolsillo){
-      const y0=6, y1=26, sub=lv.filter(l=>l.y>=y0&&l.y<=y1);
-      if(sub.length>2) add(partialLoft(sub, Math.PI*2.05, Math.PI*2.95, 0.9),
-        matSolid(S.colors.mangas||S.colors.cuerpo));
-    }
-    /* ---- cremallera ---- */
-    if(d.cremallera){
-      const pts = lv.filter((_,i)=>i%2===0).map(l=>[0,l.y,l.b+0.35]);
-      add(ribbon(pts,1.7), trim);
-    }
-    if(d.botones){
-      for(let i=0;i<5;i++){
-        const y = m.largo-6-i*8, l = lv.reduce((p,c)=>Math.abs(c.y-y)<Math.abs(p.y-y)?c:p);
-        const b = new THREE.Mesh(new THREE.CylinderGeometry(.9*SCALE,.9*SCALE,.3*SCALE,18), trim);
-        b.rotation.x=Math.PI/2; b.position.set(0,l.y*SCALE,(l.b+0.3)*SCALE); root.add(b);
-      }
-    }
-    if(d.cordones){
-      [-1,1].forEach(s=>{
-        const c = new THREE.Mesh(new THREE.CylinderGeometry(.32*SCALE,.32*SCALE,20*SCALE,8),
-          matSolid(S.colors.rib,{rough:.9}));
-        c.position.set(s*3.5*SCALE,(m.largo-9)*SCALE,(top.b+1.4)*SCALE); root.add(c);
-      });
-    }
-    if(S.type==='polo'){
-      const pts=lv.filter(l=>l.y>=m.largo-15 && l.y<=m.largo-1).map(l=>[0,l.y,l.b+0.25]);
-      if(pts.length>1) add(ribbon(pts,3.4), matSolid(S.colors.cuerpo,{rough:.9}));
-      for(let i=0;i<2;i++){
-        const y=m.largo-6-i*5, l=lv.reduce((p,c)=>Math.abs(c.y-y)<Math.abs(p.y-y)?c:p);
-        const bt=new THREE.Mesh(new THREE.CylinderGeometry(.6*SCALE,.6*SCALE,.3*SCALE,16),trim);
-        bt.rotation.x=Math.PI/2; bt.position.set(0,l.y*SCALE,(l.b+0.5)*SCALE); root.add(bt);
-      }
-    }
-    if(d.etiquetaCuello){
-      const lb = new THREE.Mesh(new THREE.PlaneGeometry(5*SCALE,2.4*SCALE), matSolid('#ffffff',{rough:.8}));
-      lb.position.set(0,(m.largo-3.4)*SCALE,-(top.b+0.2)*SCALE); lb.rotation.y=Math.PI; root.add(lb);
-    }
-    if(d.etiquetaBajo){
-      const lb = new THREE.Mesh(new THREE.PlaneGeometry(3.6*SCALE,1.6*SCALE), matSolid(S.colors.rib,{rough:.8}));
-      const l = lv[2]; lb.position.set(l.a*0.55*SCALE, 9*SCALE, (l.b*0.86)*SCALE); root.add(lb);
-    }
-    if(refit){ camDolly.y = m.largo*0.5*SCALE; drag.dist = m.largo*SCALE*4.6; }
-    shadow.scale.set(m.pecho*SCALE*2.6, m.pecho*SCALE*2.6, 1);
-
-  } else {
-    /* ---------- PANTALONES ---------- */
-    const hip = bottomLevels(m), meta = hip.meta;
-    const off = meta.aH*0.48, rTop = m.muslo/Math.PI;
-    const maxX = bottomHalfWidth(m), uvo = {uv:'planar',minX:-maxX,maxX:maxX};
-    const g1 = loft(hip, Object.assign({vOff:meta.crotchY/m.largo, vSpan:1-meta.crotchY/m.largo}, uvo));
-    add(g1, art);
-    [-1,1].forEach(side=>{
-      const lg = legLevels(m, side);
-      const g = loft(lg, Object.assign({vSpan:meta.crotchY/m.largo}, uvo));
-      add(g, art);
-      const b = lg[0];
-      if(d.rib){
-        add(loft([{y:-0.5,a:b.a*0.82,b:b.b*0.82,cx:b.cx},{y:5,a:b.a*1.02,b:b.b*1.02,cx:b.cx}],
-          Object.assign({vFlat:0},uvo)), ribCol);
-      }
-      add(capGeom(lg[0],true), matSolid(S.colors.interior,{rough:1}));
-      if(d.bolsillos){
-        const sub = lg.filter(l=>l.y>meta.crotchY-24&&l.y<meta.crotchY-6);
-        if(sub.length>2) add(partialLoft(sub, Math.PI*1.15, Math.PI*1.85, 0.5),
-          matSolid(S.colors.mangas||S.colors.cuerpo));
-      }
-    });
-    const w = hip[hip.length-1];
-    add(loft([{y:m.largo-5,a:w.a*1.01,b:w.b*1.01},{y:m.largo+0.5,a:w.a*1.01,b:w.b*1.01}],
-      Object.assign({vFlat:0},uvo)), ribCol);
-    if(d.cordones){
-      [-1,1].forEach(s=>{
-        const c=new THREE.Mesh(new THREE.CylinderGeometry(.3*SCALE,.3*SCALE,16*SCALE,8),matSolid(S.colors.rib));
-        c.position.set(s*2.6*SCALE,(m.largo-8)*SCALE,(w.b+0.8)*SCALE); root.add(c);
-      });
-    }
-    if(refit){ camDolly.y = m.largo*0.5*SCALE; drag.dist = m.largo*SCALE*4.2; }
-    shadow.scale.set(m.cadera*SCALE*3, m.cadera*SCALE*3, 1);
-  }
+  buildFlatGarment(m, add, refit);
   shadow.position.y = 0.002;
   shadow.visible = S.env.sombra;
   applyEnv();
@@ -1077,39 +1058,11 @@ function drawFlat(){
   x.save(); x.shadowColor='rgba(0,0,0,.18)'; x.shadowBlur=18; x.shadowOffsetY=6;
   pathFrom(x,P); x.fillStyle=S.colors.cuerpo; x.fill(); x.restore();
 
-  // artwork recortado a la silueta
-  const fc=faceCanvas(face), fx=fc.getContext('2d');
-  fx.clearRect(0,0,fc.width,fc.height);
-  drawFabric(fx,fc.width,fc.height,S.colors.cuerpo);
-  drawLayers(fx,face,PPC,false);
-  x.save(); pathFrom(x,P); x.clip();
-  const dw=p.w*F.ppc, dh=p.h*F.ppc;
-  x.drawImage(fc, F.ox-dw/2, F.oy, dw, dh);
-  x.restore();
-
-  // mangas / rib en color propio
-  x.save(); pathFrom(x,P); x.clip();
-  if(isTop() && (S.colors.mangas)){
-    const shX=m.hombro/2;
-    x.fillStyle=S.colors.mangas;
-    x.fillRect(...c2p(-99,0), (99-shX)*F.ppc, m.largo*F.ppc);
-    x.fillRect(...c2p(shX,0), 99*F.ppc, m.largo*F.ppc);
-  }
-  if(S.det.rib||TYPES[S.type].def.rib){
-    x.fillStyle=S.colors.rib;
-    x.fillRect(...c2p(-99,m.largo-5), 198*F.ppc, 5*F.ppc);
-  }
-  x.restore();
+  // relleno + tejido + arte + paneles + detalles + cuello (compartido con el 3D)
+  paintFace(x, face, c2p, P);
 
   // contorno técnico
   pathFrom(x,P); x.strokeStyle='#14161a'; x.lineWidth=1.6; x.stroke();
-  if(isTop()){                                   // línea de cuello interior
-    const nW=m.cuelloA/2, nD=face==='front'?m.cuelloP:Math.max(2,m.cuelloP*0.3);
-    x.beginPath();
-    const a=c2p(-nW*0.96,1.9), b=c2p(0,nD+2.4), c=c2p(nW*0.96,1.9);
-    x.moveTo(a[0],a[1]); x.quadraticCurveTo(b[0],b[1]-8,b[0],b[1]); x.quadraticCurveTo(c[0],c[1]+8,c[0],c[1]);
-    x.strokeStyle='#14161a'; x.lineWidth=1.1; x.stroke();
-  }
 
   // zonas de impresión
   if(S.env.guias){

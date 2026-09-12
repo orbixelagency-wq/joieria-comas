@@ -42,4 +42,8 @@ El trabajo se **autoguarda** en el navegador y se recupera al reabrir la app.
 - **6 tipos de prenda nuevos** (tirantes, crop, polo con tapeta, vestido, cargo).
 - **Plantillas de estampación** con posiciones estándar (un clic).
 - **Exportación de vídeo 360°** (.webm) además de la tira de fotogramas.
-- **Render más realista**: tono de estudio (ACES), micro-textura de tejido y superficies más suaves.
+- **Render de prenda plana con volumen**: la prenda se muestra como su silueta
+  (delante + detrás cosidos por el canto) con poco grosor. Gira en 360° y se le
+  ve la costura, pero **nunca parece un cuerpo ni un maniquí**. Con tono de
+  estudio (ACES) y micro-textura de tejido. La vista 3D y el plano técnico
+  comparten el mismo dibujo, así que siempre coinciden.
