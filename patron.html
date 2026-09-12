@@ -1,0 +1,1741 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>PATRÓN — Estudio de prendas 360°</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#14161a;
+  --ink-2:#4a5057;
+  --paper:#e9e7e1;
+  --panel:#ffffff;
+  --line:#d3d0c8;
+  --pom:#e23a2e;
+  --steel:#4a6076;
+  --ok:#2f7d5b;
+  --r:3px;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  --sans:'Archivo',system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden}
+body{
+  font-family:var(--sans);color:var(--ink);background:var(--paper);
+  font-size:13px;line-height:1.45;
+  display:flex;flex-direction:column;
+}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-thumb{background:#c8c5bd;border-radius:9px}
+::-webkit-scrollbar-track{background:transparent}
+
+/* ---------- top bar ---------- */
+header{
+  display:flex;align-items:center;gap:10px;
+  padding:0 12px;height:48px;flex:0 0 48px;
+  background:var(--ink);color:#f4f2ed;border-bottom:1px solid #000;
+}
+.logo{font-weight:800;letter-spacing:.16em;font-size:14px}
+.logo span{color:var(--pom)}
+.slug{font-family:var(--mono);font-size:10px;color:#9aa0a6;letter-spacing:.06em;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+.tbtn{
+  font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+  color:#d8d5cf;padding:7px 10px;border:1px solid #333;border-radius:var(--r);white-space:nowrap;
+}
+.tbtn:hover{background:#242830}
+.tbtn.pri{background:var(--pom);border-color:var(--pom);color:#fff;font-weight:600}
+.tbtn.pri:hover{background:#c92f24}
+
+/* ---------- layout ---------- */
+main{flex:1;display:flex;min-height:0}
+.rail{
+  flex:0 0 62px;background:var(--ink);display:flex;flex-direction:column;
+  align-items:center;padding:8px 0;gap:2px;overflow-y:auto;
+}
+.rail button{
+  width:52px;padding:8px 2px;border-radius:var(--r);color:#8b9299;
+  font-family:var(--mono);font-size:8.5px;letter-spacing:.04em;text-transform:uppercase;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+}
+.rail button svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.5}
+.rail button:hover{color:#e8e6e1;background:#20242b}
+.rail button.on{color:#fff;background:#2b3038}
+.rail button.on svg{stroke:var(--pom)}
+
+/* ---------- viewport ---------- */
+.stage{flex:1;position:relative;min-width:0;background:
+  linear-gradient(#00000008 1px,transparent 1px) 0 0/26px 26px,
+  linear-gradient(90deg,#00000008 1px,transparent 1px) 0 0/26px 26px,
+  radial-gradient(120% 90% at 50% 0%,#f6f5f2 0%,#dedbd3 100%);
+}
+#gl{position:absolute;inset:0;display:block;touch-action:none}
+#flat2d{position:absolute;inset:0;display:none;touch-action:none}
+.stage.flatmode #gl{display:none}
+.stage.flatmode #flat2d{display:block}
+
+.vtop{position:absolute;top:10px;left:10px;right:10px;display:flex;gap:6px;flex-wrap:wrap;pointer-events:none}
+.vtop > *{pointer-events:auto}
+.seg{display:flex;background:#fffffff0;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;backdrop-filter:blur(6px)}
+.seg button{
+  font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;
+  padding:7px 11px;color:var(--ink-2);border-right:1px solid var(--line)
+}
+.seg button:last-child{border-right:none}
+.seg button.on{background:var(--ink);color:#fff}
+.chip{
+  font-family:var(--mono);font-size:10px;padding:7px 10px;background:#fffffff0;
+  border:1px solid var(--line);border-radius:var(--r);color:var(--ink-2);letter-spacing:.05em
+}
+.vbot{position:absolute;bottom:10px;left:10px;right:10px;display:flex;gap:6px;align-items:flex-end;flex-wrap:wrap;pointer-events:none}
+.vbot > *{pointer-events:auto}
+
+/* ---------- inspector ---------- */
+.insp{
+  flex:0 0 306px;background:var(--panel);border-left:1px solid var(--line);
+  display:flex;flex-direction:column;min-height:0;
+}
+.insp-h{
+  padding:11px 14px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:8px;
+}
+.insp-h h2{margin:0;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+.insp-h em{font-family:var(--mono);font-size:9.5px;color:#9b9890;font-style:normal;letter-spacing:.05em}
+.insp-b{overflow-y:auto;padding:12px 14px 60px;flex:1}
+
+.grp{margin-bottom:18px}
+.grp > label,.lbl{
+  display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:#8e8b83;margin-bottom:6px
+}
+.row{display:flex;gap:6px;align-items:center}
+.row + .row{margin-top:6px}
+select,input[type=text],input[type=number]{
+  width:100%;padding:7px 8px;border:1px solid var(--line);border-radius:var(--r);
+  background:#fbfaf8;font-size:12px
+}
+select:focus,input:focus{outline:2px solid var(--steel);outline-offset:-1px}
+input[type=range]{width:100%;accent-color:var(--pom);height:22px}
+.opts{display:grid;grid-template-columns:repeat(2,1fr);gap:5px}
+.opts.three{grid-template-columns:repeat(3,1fr)}
+.opt{
+  padding:8px 6px;border:1px solid var(--line);border-radius:var(--r);background:#fbfaf8;
+  font-size:11px;text-align:center;line-height:1.25
+}
+.opt small{display:block;font-family:var(--mono);font-size:8.5px;color:#9b9890;letter-spacing:.04em}
+.opt.on{border-color:var(--ink);background:var(--ink);color:#fff}
+.opt.on small{color:#b9b6ae}
+.sw{display:grid;grid-template-columns:repeat(9,1fr);gap:4px}
+.sw button{aspect-ratio:1;border-radius:2px;border:1px solid #0000001f}
+.sw button.on{outline:2px solid var(--ink);outline-offset:1px}
+.val{font-family:var(--mono);font-size:10px;color:var(--ink-2);min-width:46px;text-align:right}
+.switch{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--line)}
+.switch:last-child{border-bottom:none}
+.switch span{font-size:12px}
+.tgl{width:36px;height:20px;border-radius:20px;background:#cfccc4;position:relative;transition:.15s;flex:0 0 36px}
+.tgl:after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.15s}
+.tgl.on{background:var(--ok)}
+.tgl.on:after{left:18px}
+table.spec{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:10px}
+table.spec th{
+  text-align:right;padding:4px 3px;color:#8e8b83;font-weight:400;border-bottom:1px solid var(--line);
+  letter-spacing:.04em
+}
+table.spec th:first-child{text-align:left}
+table.spec td{padding:2px;border-bottom:1px solid #ece9e3}
+table.spec td:first-child{font-family:var(--sans);font-size:11px;padding-left:0}
+table.spec input{width:100%;padding:3px 2px;text-align:right;border:1px solid transparent;background:transparent;font-family:var(--mono);font-size:10px}
+table.spec input:hover{border-color:var(--line)}
+table.spec tr.base td{background:#fff6f5}
+.hint{font-size:11px;color:#8e8b83;line-height:1.4;margin:6px 0 0}
+.layer{
+  display:flex;align-items:center;gap:8px;padding:7px 8px;border:1px solid var(--line);
+  border-radius:var(--r);margin-bottom:5px;background:#fbfaf8
+}
+.layer.on{border-color:var(--ink);background:#fff;box-shadow:0 1px 0 var(--ink)}
+.layer .nm{flex:1;font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.layer .ic{font-family:var(--mono);font-size:9px;color:#9b9890;width:22px}
+.layer .x{color:#b3b0a8;font-size:14px;line-height:1;padding:2px 4px}
+.layer .x:hover{color:var(--pom)}
+.add{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:10px}
+.add button{padding:9px 4px;border:1px dashed var(--line);border-radius:var(--r);font-size:11px;background:#fbfaf8}
+.add button:hover{border-color:var(--ink);border-style:solid}
+.bar{display:flex;gap:5px;margin-top:8px}
+.bar button{flex:1;padding:9px;border:1px solid var(--ink);border-radius:var(--r);font-size:11.5px;font-weight:600;background:var(--ink);color:#fff}
+.bar button.ghost{background:transparent;color:var(--ink)}
+.note{
+  font-family:var(--mono);font-size:9.5px;color:#8e8b83;border-left:2px solid var(--pom);
+  padding:5px 0 5px 8px;margin-top:10px;letter-spacing:.02em;line-height:1.5
+}
+.toast{
+  position:fixed;left:50%;bottom:22px;transform:translate(-50%,14px);background:var(--ink);color:#fff;
+  font-family:var(--mono);font-size:11px;padding:10px 16px;border-radius:var(--r);opacity:0;
+  transition:.2s;pointer-events:none;z-index:99;letter-spacing:.04em;max-width:86vw;text-align:center
+}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* ---------- mobile ---------- */
+@media (max-width:900px){
+  main{flex-direction:column}
+  .rail{
+    flex:0 0 auto;flex-direction:row;order:3;padding:0;overflow-x:auto;
+    border-top:1px solid #000;justify-content:flex-start
+  }
+  .rail button{flex:0 0 58px;padding:7px 2px}
+  .stage{order:1;min-height:38vh}
+  .insp{
+    order:2;flex:1 1 auto;border-left:none;border-top:1px solid var(--line);
+    min-height:200px;max-height:52vh
+  }
+  .insp-b{padding-bottom:20px}
+  .sw{grid-template-columns:repeat(8,1fr)}
+}
+@media (max-width:620px){
+  header{gap:6px;padding:0 8px}
+  .slug{display:none}
+  .tbtn{padding:7px 8px;letter-spacing:.04em}
+}
+@media print{
+  body{overflow:visible;height:auto}
+  header,.rail,.insp,.vtop,.vbot{display:none!important}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">PATRÓN<span>.</span></div>
+  <div class="slug" id="slug">—</div>
+  <button class="tbtn" id="btnUndo" title="Deshacer (Ctrl+Z)">↩ Deshacer</button>
+  <button class="tbtn" id="btnRedo" title="Rehacer (Ctrl+Shift+Z)">↪ Rehacer</button>
+  <button class="tbtn" id="btnSave" title="Guardar (Ctrl+S)">Guardar</button>
+  <button class="tbtn pri" id="btnExport">Exportar</button>
+</header>
+
+<main>
+  <nav class="rail" id="rail"></nav>
+
+  <section class="stage" id="stage">
+    <canvas id="gl"></canvas>
+    <canvas id="flat2d"></canvas>
+
+    <div class="vtop">
+      <div class="seg" id="viewSeg">
+        <button data-v="3d" class="on">360°</button>
+        <button data-v="flat">Plano</button>
+      </div>
+      <div class="seg" id="faceSeg">
+        <button data-f="front" class="on">Delante</button>
+        <button data-f="back">Detrás</button>
+      </div>
+      <div class="chip" id="chipSize">M</div>
+    </div>
+
+    <div class="vbot">
+      <div class="seg" id="angleSeg">
+        <button data-a="0">0°</button>
+        <button data-a="45">45°</button>
+        <button data-a="90">90°</button>
+        <button data-a="180">180°</button>
+        <button data-a="spin">↻</button>
+      </div>
+      <div class="chip" id="chipInfo">arrastra para girar</div>
+    </div>
+  </section>
+
+  <aside class="insp">
+    <div class="insp-h"><h2 id="inspTitle">Prenda</h2><em id="inspSub">base</em></div>
+    <div class="insp-b" id="inspBody"></div>
+  </aside>
+</main>
+
+<div class="toast" id="toast"></div>
+<!-- Motor 3D: local primero (funciona sin conexión), CDN sólo como respaldo -->
+<script src="vendor/three.min.js"></script>
+<script>if(!window.THREE){document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script>');}</script>
+<script>
+/* ==========================================================================
+   PATRÓN — estudio de prendas 360°
+   Motor paramétrico: las medidas reales (cm) generan la geometría 3D,
+   el patrón plano y la ficha técnica. Nada está "dibujado a mano".
+   ========================================================================== */
+
+const $ = s => document.querySelector(s);
+const clamp = (v,a,b) => Math.min(b,Math.max(a,v));
+const uid = () => Math.random().toString(36).slice(2,9);
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),1900);}
+
+/* Persistencia real en el navegador (localStorage), con degradado seguro */
+const Store = {
+  set(k,v){ try{ localStorage.setItem(k,v); return true; }catch(e){ return false; } },
+  get(k){ try{ const v=localStorage.getItem(k); return v==null?null:v; }catch(e){ return null; } },
+  remove(k){ try{ localStorage.removeItem(k); }catch(e){} },
+  available(){ try{ const t='__t'; localStorage.setItem(t,'1'); localStorage.removeItem(t); return true; }catch(e){ return false; } }
+};
+const WORK_KEY = 'patron:trabajo';
+
+/* ---------- 1. CATÁLOGO DE PRENDAS ------------------------------------- */
+/* Medidas en cm, en PLANO (1/2 contorno) sobre talla base M.
+   grade = cuánto crece cada medida por talla.                             */
+
+const SIZES = ['XS','S','M','L','XL','XXL'];
+
+const TYPES = {
+  tee: {
+    label:'Camiseta', fam:'top', sub:'regular fit',
+    m:{pecho:52, largo:71, hombro:45, manga:21, bicep:19, bajo:51, cuelloA:18, cuelloP:8, sisa:22},
+    grade:{pecho:2.5,largo:2,hombro:1.2,manga:1,bicep:1,bajo:2.5,cuelloA:.5,cuelloP:.2,sisa:1},
+    def:{cuello:'redondo',manga:'corta',fit:'regular',gsm:180,tejido:'jersey'}
+  },
+  tee_over: {
+    label:'Camiseta oversize', fam:'top', sub:'boxy · hombro caído',
+    m:{pecho:60, largo:74, hombro:56, manga:24, bicep:23, bajo:60, cuelloA:20, cuelloP:9, sisa:27},
+    grade:{pecho:3,largo:2,hombro:1.5,manga:1,bicep:1,bajo:3,cuelloA:.5,cuelloP:.2,sisa:1.2},
+    def:{cuello:'redondo',manga:'corta',fit:'oversize',gsm:240,tejido:'jersey'}
+  },
+  longsleeve: {
+    label:'Manga larga', fam:'top', sub:'básico',
+    m:{pecho:55, largo:72, hombro:48, manga:60, bicep:20, bajo:54, cuelloA:18, cuelloP:8, sisa:23},
+    grade:{pecho:2.5,largo:2,hombro:1.2,manga:2,bicep:1,bajo:2.5,cuelloA:.5,cuelloP:.2,sisa:1},
+    def:{cuello:'redondo',manga:'larga',fit:'regular',gsm:200,tejido:'jersey'}
+  },
+  crew: {
+    label:'Sudadera', fam:'top', sub:'cuello redondo',
+    m:{pecho:60, largo:70, hombro:54, manga:58, bicep:23, bajo:52, cuelloA:20, cuelloP:8, sisa:26},
+    grade:{pecho:3,largo:2,hombro:1.5,manga:2,bicep:1,bajo:2.5,cuelloA:.5,cuelloP:.2,sisa:1.2},
+    def:{cuello:'redondo',manga:'larga',fit:'oversize',gsm:400,tejido:'felpa',rib:true}
+  },
+  hoodie: {
+    label:'Hoodie', fam:'top', sub:'capucha cerrada',
+    m:{pecho:62, largo:72, hombro:56, manga:59, bicep:24, bajo:54, cuelloA:22, cuelloP:10, sisa:28},
+    grade:{pecho:3,largo:2,hombro:1.5,manga:2,bicep:1,bajo:2.5,cuelloA:.5,cuelloP:.2,sisa:1.2},
+    def:{cuello:'capucha',manga:'larga',fit:'oversize',gsm:420,tejido:'felpa',rib:true,capucha:true,bolsillo:true,cordones:true}
+  },
+  zip: {
+    label:'Sudadera con cremallera', fam:'top', sub:'full zip',
+    m:{pecho:62, largo:70, hombro:56, manga:59, bicep:24, bajo:54, cuelloA:22, cuelloP:10, sisa:28},
+    grade:{pecho:3,largo:2,hombro:1.5,manga:2,bicep:1,bajo:2.5,cuelloA:.5,cuelloP:.2,sisa:1.2},
+    def:{cuello:'capucha',manga:'larga',fit:'oversize',gsm:420,tejido:'felpa',rib:true,capucha:true,cremallera:true,cordones:true}
+  },
+  bomber: {
+    label:'Bomber / varsity', fam:'top', sub:'rib en cuello, puño y bajo',
+    m:{pecho:63, largo:66, hombro:55, manga:60, bicep:25, bajo:52, cuelloA:20, cuelloP:9, sisa:29},
+    grade:{pecho:3,largo:2,hombro:1.5,manga:2,bicep:1,bajo:2.5,cuelloA:.5,cuelloP:.2,sisa:1.2},
+    def:{cuello:'rib',manga:'larga',fit:'oversize',gsm:520,tejido:'nylon',rib:true,cremallera:true}
+  },
+  pants: {
+    label:'Pantalón', fam:'bottom', sub:'recto',
+    m:{cintura:41, cadera:58, largo:104, tiro:30, muslo:34, bajoP:22},
+    grade:{cintura:2,cadera:2.5,largo:1.5,tiro:1,muslo:1.5,bajoP:.8},
+    def:{fit:'recto',gsm:340,tejido:'denim',bolsillos:true}
+  },
+  jogger: {
+    label:'Jogger', fam:'bottom', sub:'puño elástico',
+    m:{cintura:38, cadera:60, largo:100, tiro:32, muslo:36, bajoP:14},
+    grade:{cintura:2,cadera:2.5,largo:1.5,tiro:1,muslo:1.5,bajoP:.6},
+    def:{fit:'holgado',gsm:400,tejido:'felpa',rib:true,cordones:true,bolsillos:true}
+  },
+  shorts: {
+    label:'Short', fam:'bottom', sub:'largo rodilla',
+    m:{cintura:40, cadera:60, largo:52, tiro:32, muslo:36, bajoP:30},
+    grade:{cintura:2,cadera:2.5,largo:1,tiro:1,muslo:1.5,bajoP:1.2},
+    def:{fit:'holgado',gsm:300,tejido:'felpa',cordones:true,bolsillos:true}
+  },
+  boxer: {
+    label:'Bóxer', fam:'bottom', sub:'cintura elástica',
+    m:{cintura:36, cadera:52, largo:34, tiro:26, muslo:29, bajoP:26},
+    grade:{cintura:2,cadera:2,largo:.8,tiro:.8,muslo:1.2,bajoP:1},
+    def:{fit:'ajustado',gsm:180,tejido:'jersey',rib:true}
+  }
+};
+
+const MLABEL = {
+  pecho:'Pecho (1/2)', largo:'Largo total', hombro:'Hombro a hombro', manga:'Largo manga',
+  bicep:'Ancho manga', bajo:'Bajo (1/2)', cuelloA:'Ancho cuello', cuelloP:'Profundidad cuello',
+  sisa:'Sisa', cintura:'Cintura (1/2)', cadera:'Cadera (1/2)', tiro:'Tiro', muslo:'Muslo (1/2)', bajoP:'Bajo pierna'
+};
+
+/* ---------- 2. TEJIDOS Y ACABADOS -------------------------------------- */
+const FABRICS = {
+  jersey:{label:'Punto jersey', rough:.85, sheen:.04, grain:.5,  comp:'100% algodón peinado'},
+  felpa:{ label:'French terry', rough:.95, sheen:.02, grain:.9,  comp:'80% algodón / 20% poliéster'},
+  denim:{ label:'Denim',        rough:.8,  sheen:.06, grain:1.3, comp:'100% algodón 12 oz'},
+  nylon:{ label:'Nylon ripstop',rough:.35, sheen:.45, grain:.35, comp:'100% poliamida'},
+  rib:{   label:'Canalé 2x1',   rough:.9,  sheen:.03, grain:1.1, comp:'95% algodón / 5% elastano'},
+  lana:{  label:'Lana melton',  rough:1,   sheen:.01, grain:1.6, comp:'70% lana / 30% poliéster'}
+};
+
+const PRINTS = {
+  dtg:{label:'DTG', relief:0, note:'Directo a prenda · sin límite de color'},
+  serigrafia:{label:'Serigrafía', relief:.35, note:'Máx. 6 tintas planas · coste por color'},
+  dtf:{label:'DTF', relief:.5, note:'Transfer · buen color sobre oscuro'},
+  puff:{label:'Puff', relief:1, note:'Serigrafía en relieve · sin degradados'},
+  bordado:{label:'Bordado', relief:.8, note:'Máx. 12.000 puntadas · sin fotografía'}
+};
+
+/* Paleta base — tonos de tintura reales de streetwear */
+const PALETTE = [
+  '#ffffff','#f2efe6','#e3ddcd','#c9c1ae','#9c9384','#6f6a60','#4a4744','#2a2a28','#111111',
+  '#1d2b53','#2f4858','#3c6e57','#5b8c3e','#a8b545','#e4c441','#e58f2a','#d2542a','#a8281f',
+  '#7b2233','#5a2b57','#7f5af0','#b8c0ff','#9ad1d4','#d9a5b3','#f4a6a0','#c2410c','#0f766e'
+];
+</script>
+<script>
+/* ---------- 3. ESTADO --------------------------------------------------- */
+const S = {
+  type:'tee', size:'M',
+  m:{}, over:{},                       // medidas efectivas / sobrescritas a mano
+  colors:{cuerpo:'#e3ddcd', mangas:'', rib:'#2a2a28', interior:'#f2efe6', avios:'#9c9384', costura:''},
+  fabric:'jersey', gsm:180, print:'dtg',
+  det:{capucha:false,bolsillo:false,cordones:false,cremallera:false,botones:false,
+       etiquetaCuello:true,etiquetaBajo:false,bolsillos:false,cintaLateral:false,rib:false},
+  layers:{front:[],back:[]},
+  sel:null, face:'front', view:'3d',
+  env:{luz:'estudio',fondo:'papel',sombra:true,spin:false,grano:true,guias:true,medidas:false},
+  meta:{nombre:'DROP 01 — MODELO A', codigo:'PT-001', temporada:'AW26'},
+  hist:[], redo:[]
+};
+const SCALE = 0.052;                   // cm → unidades de escena
+const PPC   = 11;                      // px por cm en la textura de trabajo
+
+/* medidas efectivas de la talla activa */
+function measures(){
+  const T = TYPES[S.type], i = SIZES.indexOf(S.size) - 2, out = {};
+  for(const k in T.m) out[k] = +(T.m[k] + (T.grade[k]||0)*i).toFixed(1);
+  for(const k in S.over) if(S.over[k]!=null) out[k] = S.over[k];
+  return out;
+}
+function isTop(){ return TYPES[S.type].fam === 'top'; }
+
+/* ---------- 4. MATEMÁTICA DE SECCIÓN ------------------------------------ */
+/* Perímetro de elipse (Ramanujan). Resolvemos el semieje "a" para que el
+   medio perímetro coincida con la medida en plano → la geometría respeta
+   milímetro a milímetro la tabla de medidas.                               */
+function ellipseP(a,b){ return Math.PI*(3*(a+b) - Math.sqrt((3*a+b)*(a+3*b))); }
+function solveA(halfPerim, r){
+  let lo=0.1, hi=200;
+  for(let i=0;i<40;i++){ const mid=(lo+hi)/2; (ellipseP(mid,mid*r)/2 < halfPerim) ? lo=mid : hi=mid; }
+  return (lo+hi)/2;
+}
+function depthRatio(){
+  const f = TYPES[S.type].def.fit;
+  return f==='oversize'?0.64 : f==='holgado'?0.7 : f==='ajustado'?0.52 : 0.58;
+}
+/* punto de una superelipse suavizada (más plana que una elipse: tela) */
+function sect(t,a,b,n){
+  n = n||2.35;
+  const c=Math.cos(t), s=Math.sin(t);
+  return [ a*Math.sign(c)*Math.pow(Math.abs(c),2/n), b*Math.sign(s)*Math.pow(Math.abs(s),2/n) ];
+}
+
+/* ---------- 5. LOFT GENÉRICO -------------------------------------------- */
+/* levels: [{y,a,b,cx}] de abajo a arriba. uv 'wrap' (tops) o 'planar'.     */
+function loft(levels, opt){
+  opt = opt||{};
+  const SEG = opt.seg||64, L = levels.length;
+  const pos=[], uv=[], idx=[];
+  const vAcc=[0];
+  for(let i=1;i<L;i++) vAcc.push(vAcc[i-1] + Math.abs(levels[i].y - levels[i-1].y));
+  const vMax = vAcc[L-1] || 1;
+
+  for(let i=0;i<L;i++){
+    const lv = levels[i], ring=[], arc=[0];
+    for(let j=0;j<=SEG;j++){
+      const t = Math.PI + (j/SEG)*Math.PI*2;          // arranca en la costura lateral
+      const p = sect(t, lv.a, lv.b, opt.n);
+      ring.push([ (lv.cx||0)+p[0], lv.y, p[1] ]);
+      if(j>0){ const q=ring[j-1]; arc.push(arc[j-1] + Math.hypot(ring[j][0]-q[0], ring[j][2]-q[2])); }
+    }
+    const total = arc[SEG]||1;
+    for(let j=0;j<=SEG;j++){
+      const p = ring[j];
+      pos.push(p[0]*SCALE, p[1]*SCALE, p[2]*SCALE);
+      let u;
+      if(opt.uv==='planar'){
+        const k = (p[0]-opt.minX)/(opt.maxX-opt.minX||1);
+        u = p[2] >= 0 ? 0.5*(1-k) : 0.5 + 0.5*k;      // delante / detrás
+      } else {
+        u = 1 - arc[j]/total;                          // long. de arco = tela real
+      }
+      uv.push(u, opt.vFlat!=null ? opt.vFlat : (vAcc[i]/vMax)*(opt.vSpan||1)+(opt.vOff||0));
+    }
+  }
+  for(let i=0;i<L-1;i++) for(let j=0;j<SEG;j++){
+    const a=i*(SEG+1)+j, b=a+SEG+1;
+    idx.push(a,b,a+1, b,b+1,a+1);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos,3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv,2));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  return g;
+}
+
+/* tapa plana (para cerrar puños, bajos de pierna, etc.) */
+function capGeom(level, flip){
+  const SEG=64, pos=[], uv=[], idx=[];
+  pos.push((level.cx||0)*SCALE, level.y*SCALE, 0); uv.push(.5,.5);
+  for(let j=0;j<=SEG;j++){
+    const t = Math.PI + (j/SEG)*Math.PI*2, p = sect(t, level.a, level.b);
+    pos.push(((level.cx||0)+p[0])*SCALE, level.y*SCALE, p[1]*SCALE); uv.push(.5,.5);
+  }
+  for(let j=1;j<=SEG;j++) flip ? idx.push(0,j,j+1) : idx.push(0,j+1,j);
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+  g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
+  g.setIndex(idx); g.computeVertexNormals(); return g;
+}
+
+/* ---------- 6. PERFILES DE PRENDA --------------------------------------- */
+function topLevels(m){
+  const r = depthRatio(), lv = [];
+  const hemY = 0, chestY = m.largo - m.sisa - 4, shY = m.largo - 4, neckY = m.largo;
+  const aHem = solveA(m.bajo, r), aChest = solveA(m.pecho, r), aSh = m.hombro/2, aNeck = m.cuelloA/2;
+  const key = [
+    {y:hemY,   a:aHem,   b:aHem*r},
+    {y:chestY, a:aChest, b:aChest*r},
+    {y:shY,    a:aSh,    b:aChest*r*0.92},
+    {y:neckY,  a:aNeck,  b:aNeck*0.85}
+  ];
+  const N = 46;
+  for(let i=0;i<N;i++){
+    const y = (i/(N-1))*m.largo;
+    let s=0; while(s<key.length-2 && y>key[s+1].y) s++;
+    const k0=key[s], k1=key[s+1];
+    let t = clamp((y-k0.y)/((k1.y-k0.y)||1),0,1);
+    if(s===2) t = Math.pow(t,0.7);                     // escote: caída suave
+    if(s===1) t = t*t*(3-2*t);
+    lv.push({y, a:k0.a+(k1.a-k0.a)*t, b:k0.b+(k1.b-k0.b)*t});
+  }
+  lv.meta = {chestY, shY, neckY, aChest, aSh, aNeck, r};
+  return lv;
+}
+
+function legOffset(m){
+  const aH = solveA(m.cadera,0.72);
+  return Math.max(aH*0.48, (m.muslo/Math.PI)*1.04);
+}
+function bottomHalfWidth(m){
+  return Math.max(solveA(m.cadera,0.72), legOffset(m) + (m.muslo/Math.PI)*1.1);
+}
+function bottomLevels(m){
+  const r = 0.72;
+  const aW = solveA(m.cintura, r), aH = solveA(m.cadera, r);
+  const waistY = m.largo, hipY = m.largo - m.tiro*0.55, crotchY = m.largo - m.tiro;
+  const lv=[], N=16;
+  for(let i=0;i<N;i++){
+    const y = crotchY + (i/(N-1))*(waistY-crotchY);
+    const t = clamp((y-crotchY)/((waistY-crotchY)||1),0,1);
+    const tt = t<0.55 ? t/0.55 : 1;
+    const a = t<0.55 ? aH : aH+(aW-aH)*((t-0.55)/0.45);
+    lv.push({y, a, b:a*r});
+  }
+  lv.meta={crotchY, waistY, hipY, aH, aW, r};
+  return lv;
+}
+function legLevels(m, side){
+  const rTop = m.muslo/Math.PI, rBot = m.bajoP/Math.PI;
+  const crotchY = m.largo - m.tiro;
+  const off = legOffset(m);
+  const lv=[], N=22;
+  for(let i=0;i<N;i++){
+    const t=i/(N-1), y = t*crotchY;
+    const k = 1-t;
+    const rr = rBot + (rTop-rBot)*Math.pow(k,0.85);
+    lv.push({y, a:rr*1.06, b:rr*0.94, cx: side*off*(0.55+0.45*k)});
+  }
+  return lv;
+}
+</script>
+<script>
+/* ---------- 7. ESCENA 3D ------------------------------------------------ */
+let renderer, scene, camera, root, lights={}, shadow, spinning=false;
+let texFront, texBack, texCanvas, texCtx, reliefCanvas, reliefCtx, tex, reliefTex;
+const drag = {on:false,x:0,y:0,ry:0,rx:0,dist:16};
+
+function initGL(){
+  const cv = $('#gl');
+  renderer = new THREE.WebGLRenderer({canvas:cv, antialias:true, alpha:true, preserveDrawingBuffer:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(26, 1, 0.1, 200);
+  root = new THREE.Group(); scene.add(root);
+
+  lights.amb  = new THREE.HemisphereLight(0xffffff, 0x9a978f, .65); scene.add(lights.amb);
+  lights.key  = new THREE.DirectionalLight(0xffffff, .95); lights.key.position.set(4,7,9);  scene.add(lights.key);
+  lights.fill = new THREE.DirectionalLight(0xffffff, .35); lights.fill.position.set(-6,2,4); scene.add(lights.fill);
+  lights.rim  = new THREE.DirectionalLight(0xffffff, .5);  lights.rim.position.set(-2,4,-8); scene.add(lights.rim);
+
+  // sombra de contacto
+  const sc = document.createElement('canvas'); sc.width=sc.height=256;
+  const sx = sc.getContext('2d');
+  const g = sx.createRadialGradient(128,128,6,128,128,124);
+  g.addColorStop(0,'rgba(0,0,0,.42)'); g.addColorStop(.55,'rgba(0,0,0,.14)'); g.addColorStop(1,'rgba(0,0,0,0)');
+  sx.fillStyle=g; sx.fillRect(0,0,256,256);
+  shadow = new THREE.Mesh(new THREE.PlaneGeometry(1,1),
+    new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(sc),transparent:true,depthWrite:false}));
+  shadow.rotation.x = -Math.PI/2; scene.add(shadow);
+
+  texCanvas = document.createElement('canvas'); texCtx = texCanvas.getContext('2d');
+  reliefCanvas = document.createElement('canvas'); reliefCtx = reliefCanvas.getContext('2d');
+  tex = new THREE.CanvasTexture(texCanvas); tex.anisotropy = 8;
+  reliefTex = new THREE.CanvasTexture(reliefCanvas);
+
+  bindOrbit(cv);
+  resize(); addEventListener('resize', resize);
+  (function tick(){
+    requestAnimationFrame(tick);
+    if(spinning){ drag.ry += 0.008; }
+    root.rotation.y += (drag.ry - root.rotation.y)*0.18;
+    root.rotation.x += (clamp(drag.rx,-0.5,0.5) - root.rotation.x)*0.18;
+    camera.position.set(0, camDolly.y, drag.dist);
+    camera.lookAt(0, camDolly.y*0.92, 0);
+    renderer.render(scene,camera);
+  })();
+}
+const camDolly = {y:2};
+
+function resize(){
+  const st=$('#stage'); if(!renderer) return;
+  const w=st.clientWidth, h=st.clientHeight;
+  renderer.setSize(w,h,false);
+  camera.aspect = w/h; camera.updateProjectionMatrix();
+  layoutFlat();
+}
+
+function bindOrbit(cv){
+  let pinch=0;
+  cv.addEventListener('pointerdown',e=>{drag.on=true;drag.x=e.clientX;drag.y=e.clientY;cv.setPointerCapture(e.pointerId);spinning=false;syncSpin();});
+  cv.addEventListener('pointermove',e=>{
+    if(!drag.on) return;
+    drag.ry += (e.clientX-drag.x)*0.0095;
+    drag.rx += (e.clientY-drag.y)*0.004;
+    drag.x=e.clientX; drag.y=e.clientY;
+    $('#chipInfo').textContent = Math.round(((-drag.ry*180/Math.PI)%360+360)%360)+'°';
+  });
+  addEventListener('pointerup',()=>drag.on=false);
+  cv.addEventListener('wheel',e=>{e.preventDefault();drag.dist=clamp(drag.dist*(1+e.deltaY*0.0012),6,40);},{passive:false});
+  cv.addEventListener('touchmove',e=>{
+    if(e.touches.length===2){
+      const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+      if(pinch) drag.dist=clamp(drag.dist*(pinch/d),6,40);
+      pinch=d; e.preventDefault();
+    }
+  },{passive:false});
+  cv.addEventListener('touchend',()=>pinch=0);
+}
+
+/* ---------- 8. TEXTURAS DE PANEL --------------------------------------- */
+function panelSize(){
+  const m = measures();
+  return isTop()
+    ? {w:m.pecho, h:m.largo}
+    : {w:+(bottomHalfWidth(m)*2).toFixed(2), h:m.largo};
+}
+function faceCanvas(face){
+  const p = panelSize(), W = Math.round(p.w*PPC), H = Math.round(p.h*PPC);
+  let c = face==='front' ? texFront : texBack;
+  if(!c){ c = document.createElement('canvas'); face==='front' ? texFront=c : texBack=c; }
+  if(c.width!==W||c.height!==H){ c.width=W; c.height=H; }
+  return c;
+}
+
+function drawFabric(x,W,H,color){
+  x.fillStyle = color; x.fillRect(0,0,W,H);
+  if(!S.env.grano) return;
+  const f = FABRICS[S.fabric], g = f.grain;
+  x.save(); x.globalAlpha = 0.05*g;
+  for(let i=0;i<H;i+=3){ x.fillStyle = i%6?'#000':'#fff'; x.fillRect(0,i,W,1); }
+  if(S.fabric==='denim'){
+    x.globalAlpha=.05;
+    for(let i=-H;i<W;i+=4){ x.strokeStyle='#fff'; x.beginPath(); x.moveTo(i,0); x.lineTo(i+H,H); x.stroke(); }
+  }
+  x.restore();
+}
+
+function drawLayers(x, face, scaleF, reliefMode){
+  const p = panelSize();
+  const arr = S.layers[face];
+  for(const l of arr){
+    if(l.hidden) continue;
+    x.save();
+    x.globalAlpha = reliefMode ? 1 : (l.op==null?1:l.op);
+    if(!reliefMode && l.blend && l.blend!=='normal') x.globalCompositeOperation = l.blend;
+    const cx = (p.w/2 + l.x)*scaleF, cy = l.y*scaleF;
+    x.translate(cx, cy); x.rotate((l.rot||0)*Math.PI/180);
+    if(l.kind==='text'){
+      const px = l.size*scaleF;
+      x.font = `${l.weight||800} ${px}px ${l.font||'Archivo'}, sans-serif`;
+      x.textAlign='center'; x.textBaseline='middle';
+      x.fillStyle = reliefMode ? '#fff' : l.color;
+      const lines = String(l.text||'').split('\n');
+      lines.forEach((ln,i)=>{
+        const ch = ln.split('');
+        const tr = (l.track||0)*scaleF;
+        const wTot = ch.reduce((s,c)=>s+x.measureText(c).width+tr,0)-tr;
+        let cxx = -wTot/2;
+        const yy = (i-(lines.length-1)/2)*px*1.05;
+        for(const c of ch){ const w=x.measureText(c).width; x.fillText(c,cxx+w/2,yy); cxx+=w+tr; }
+      });
+      if(l.outline){ x.lineWidth=(l.outline)*scaleF; x.strokeStyle=reliefMode?'#fff':(l.ocolor||'#000');
+        lines.forEach((ln,i)=>x.strokeText(ln,0,(i-(lines.length-1)/2)*px*1.05)); }
+    } else if(l.kind==='img' && l.img && l.img.complete){
+      const w=l.w*scaleF, h=l.h*scaleF;
+      if(reliefMode){ x.filter='grayscale(1) brightness(2)'; }
+      x.drawImage(l.img,-w/2,-h/2,w,h);
+    } else if(l.kind==='shape'){
+      const w=l.w*scaleF, h=l.h*scaleF;
+      x.fillStyle = reliefMode?'#fff':l.color;
+      if(l.shape==='circle'){ x.beginPath(); x.ellipse(0,0,w/2,h/2,0,0,7); x.fill(); }
+      else if(l.shape==='line'){ x.fillRect(-w/2,-h/2,w,Math.max(1,h*0.12)); }
+      else x.fillRect(-w/2,-h/2,w,h);
+    }
+    x.restore();
+  }
+}
+
+function buildTextures(){
+  const p = panelSize(), W = Math.round(p.w*PPC), H = Math.round(p.h*PPC);
+  texCanvas.width = W*2; texCanvas.height = H;
+  reliefCanvas.width = W*2; reliefCanvas.height = H;
+  const x = texCtx, rx = reliefCtx;
+  ['front','back'].forEach((face,i)=>{
+    x.save(); x.translate(i*W,0);
+    x.beginPath(); x.rect(0,0,W,H); x.clip();
+    drawFabric(x,W,H,S.colors.cuerpo);
+    drawLayers(x,face,PPC,false);
+    x.restore();
+  });
+  rx.fillStyle='#000'; rx.fillRect(0,0,W*2,H);
+  ['front','back'].forEach((face,i)=>{
+    rx.save(); rx.translate(i*W,0); rx.beginPath(); rx.rect(0,0,W,H); rx.clip();
+    drawLayers(rx,face,PPC,true); rx.restore();
+  });
+  tex.needsUpdate = true; reliefTex.needsUpdate = true;
+}
+</script>
+<script>
+/* ---------- 9. MONTAJE DE LA PRENDA ------------------------------------ */
+function matArt(){
+  const f = FABRICS[S.fabric];
+  return new THREE.MeshStandardMaterial({
+    map:tex, bumpMap:reliefTex, bumpScale:PRINTS[S.print].relief*0.045,
+    roughness:f.rough, metalness:f.sheen*0.25, side:THREE.DoubleSide
+  });
+}
+function matSolid(color,{rough,metal,side}={}){
+  const f = FABRICS[S.fabric];
+  return new THREE.MeshStandardMaterial({
+    color:new THREE.Color(color||S.colors.cuerpo),
+    roughness:rough!=null?rough:f.rough, metalness:metal!=null?metal:f.sheen*0.25,
+    side:side||THREE.DoubleSide
+  });
+}
+function partialLoft(levels, t0, t1, expand, seg){
+  seg = seg||28;
+  const pos=[],uv=[],idx=[],L=levels.length;
+  for(let i=0;i<L;i++){
+    const lv=levels[i];
+    for(let j=0;j<=seg;j++){
+      const t = t0+(t1-t0)*(j/seg);
+      const p = sect(t, lv.a+expand, lv.b+expand);
+      pos.push(((lv.cx||0)+p[0])*SCALE, lv.y*SCALE, p[1]*SCALE);
+      uv.push(j/seg, i/(L-1));
+    }
+  }
+  for(let i=0;i<L-1;i++) for(let j=0;j<seg;j++){
+    const a=i*(seg+1)+j,b=a+seg+1; idx.push(a,b,a+1,b,b+1,a+1);
+  }
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+  g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
+  g.setIndex(idx); g.computeVertexNormals(); return g;
+}
+function ribbon(pts, width, normalScale){
+  const pos=[],uv=[],idx=[];
+  pts.forEach((p,i)=>{
+    pos.push((p[0]-width/2)*SCALE, p[1]*SCALE, p[2]*SCALE);
+    pos.push((p[0]+width/2)*SCALE, p[1]*SCALE, p[2]*SCALE);
+    uv.push(0,i/(pts.length-1),1,i/(pts.length-1));
+  });
+  for(let i=0;i<pts.length-1;i++){const a=i*2;idx.push(a,a+2,a+1,a+1,a+2,a+3);}
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+  g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
+  g.setIndex(idx); g.computeVertexNormals(); return g;
+}
+function dipNeck(geom, largo, drop){
+  const p = geom.attributes.position, u = geom.attributes.uv;
+  for(let i=0;i<p.count;i++){
+    const y = p.getY(i)/SCALE, v = y/largo;
+    if(v > 0.9){
+      const ramp = Math.pow(clamp((v-0.9)/0.1,0,1),1.4);
+      const f = 0.5+0.5*Math.cos((u.getX(i)-0.25)*Math.PI*2);
+      p.setY(i,(y - drop*f*ramp)*SCALE);
+    }
+  }
+  p.needsUpdate = true; geom.computeVertexNormals();
+}
+
+function build(){
+  while(root.children.length){
+    const c = root.children[0];
+    if(c.geometry) c.geometry.dispose();
+    if(c.material && c.material !== undefined) c.material.dispose();
+    root.remove(c);
+  }
+  buildTextures();
+  const m = measures(), T = TYPES[S.type], d = S.det;
+  const fitKey = S.type+'|'+S.size, refit = (S._fit !== fitKey); S._fit = fitKey;
+  const art = matArt();
+  const ribCol = matSolid(S.colors.rib,{rough:.95});
+  const trim  = matSolid(S.colors.avios,{rough:.35,metal:.65});
+  const add = (g,mat)=>{const me=new THREE.Mesh(g,mat);root.add(me);return me;};
+
+  if(isTop()){
+    const lv = topLevels(m), M = lv.meta;
+    const body = loft(lv,{uv:'wrap'});
+    dipNeck(body, m.largo, Math.max(0,m.cuelloP-2.5));
+    add(body, art);
+    add(capGeom(lv[0],true), matSolid(S.colors.interior,{rough:1}));
+
+    /* ---- mangas ---- */
+    if(T.def.manga!=='sin'){
+      const ang = (T.def.fit==='oversize') ? 0.80 : 0.62;
+      const rA = solveA(m.sisa*1.06,1), rB = solveA(m.bicep*0.86,1);
+      const N=12, slv=[];
+      for(let i=0;i<N;i++){const t=i/(N-1);slv.push({y:t*m.manga, a:rA+(rB-rA)*t, b:rA+(rB-rA)*t});}
+      [-1,1].forEach(side=>{
+        const g = loft(slv,{uv:'planar',minX:-rA,maxX:rA,seg:26,vFlat:0});
+        const q = new THREE.Quaternion().setFromUnitVectors(
+          new THREE.Vector3(0,1,0), new THREE.Vector3(side*Math.sin(ang),-Math.cos(ang),0).normalize());
+        const mtx = new THREE.Matrix4().makeRotationFromQuaternion(q);
+        mtx.setPosition(side*(m.hombro/2)*0.97*SCALE, (m.largo-4.2)*SCALE, 0);
+        g.applyMatrix4(mtx);
+        const sm = add(g, matSolid(S.colors.mangas||S.colors.cuerpo));
+        if(d.rib||T.def.rib){
+          const cf=[{y:m.manga-4,a:rB*1.02,b:rB*1.02},{y:m.manga+0.6,a:rB*0.86,b:rB*0.86}];
+          const cg = loft(cf,{uv:'planar',minX:-rB,maxX:rB,seg:26,vFlat:0});
+          cg.applyMatrix4(mtx); add(cg, ribCol);
+        }
+        if(d.cintaLateral){
+          const pts=[];for(let i=0;i<N;i++){const t=i/(N-1);pts.push([0,t*m.manga,-(rA+(rB-rA)*t)-0.25]);}
+          const rg = ribbon(pts,2.2); rg.applyMatrix4(mtx); add(rg, matSolid(S.colors.rib,{rough:.9}));
+        }
+      });
+    }
+    /* ---- bajo, cuello, capucha ---- */
+    if(d.rib||T.def.rib){
+      const a0=lv[0].a, b0=lv[0].b;
+      add(loft([{y:-0.4,a:a0*0.94,b:b0*0.94},{y:5.5,a:a0*1.01,b:b0*1.01}],{uv:'planar',minX:-a0,maxX:a0,vFlat:0}), ribCol);
+    }
+    const top = lv[lv.length-1];
+    const collar = loft([{y:m.largo-0.6,a:top.a*1.03,b:top.b*1.03},{y:m.largo+2.2,a:top.a*1.02,b:top.b*1.02}],
+      {uv:'planar',minX:-top.a,maxX:top.a,vFlat:0});
+    dipNeck(collar, m.largo, Math.max(0,m.cuelloP-2.5));
+    add(collar, ribCol);
+
+    if(d.capucha){
+      const aN=top.a, H=[];
+      for(let i=0;i<16;i++){
+        const t=i/15, y=m.largo+t*30;
+        const w = aN*(1.02+0.55*Math.sin(t*Math.PI*0.92));
+        H.push({y, a:w, b:w*0.88, cz:-t*t*7});
+      }
+      const hg = loft(H,{uv:'planar',minX:-aN*1.6,maxX:aN*1.6,vFlat:0});
+      const hp = hg.attributes.position;
+      for(let i=0;i<hp.count;i++){
+        const y=hp.getY(i)/SCALE, t=clamp((y-m.largo)/30,0,1);
+        hp.setZ(i, hp.getZ(i) - (t*t*7)*SCALE);
+      }
+      hp.needsUpdate=true; hg.computeVertexNormals();
+      add(hg, matSolid(S.colors.cuerpo));
+    }
+    /* ---- bolsillo canguro ---- */
+    if(d.bolsillo){
+      const y0=6, y1=26, sub=lv.filter(l=>l.y>=y0&&l.y<=y1);
+      if(sub.length>2) add(partialLoft(sub, Math.PI*2.05, Math.PI*2.95, 0.9),
+        matSolid(S.colors.mangas||S.colors.cuerpo));
+    }
+    /* ---- cremallera ---- */
+    if(d.cremallera){
+      const pts = lv.filter((_,i)=>i%2===0).map(l=>[0,l.y,l.b+0.35]);
+      add(ribbon(pts,1.7), trim);
+    }
+    if(d.botones){
+      for(let i=0;i<5;i++){
+        const y = m.largo-6-i*8, l = lv.reduce((p,c)=>Math.abs(c.y-y)<Math.abs(p.y-y)?c:p);
+        const b = new THREE.Mesh(new THREE.CylinderGeometry(.9*SCALE,.9*SCALE,.3*SCALE,18), trim);
+        b.rotation.x=Math.PI/2; b.position.set(0,l.y*SCALE,(l.b+0.3)*SCALE); root.add(b);
+      }
+    }
+    if(d.cordones){
+      [-1,1].forEach(s=>{
+        const c = new THREE.Mesh(new THREE.CylinderGeometry(.32*SCALE,.32*SCALE,20*SCALE,8),
+          matSolid(S.colors.rib,{rough:.9}));
+        c.position.set(s*3.5*SCALE,(m.largo-9)*SCALE,(top.b+1.4)*SCALE); root.add(c);
+      });
+    }
+    if(d.etiquetaCuello){
+      const lb = new THREE.Mesh(new THREE.PlaneGeometry(5*SCALE,2.4*SCALE), matSolid('#ffffff',{rough:.8}));
+      lb.position.set(0,(m.largo-3.4)*SCALE,-(top.b+0.2)*SCALE); lb.rotation.y=Math.PI; root.add(lb);
+    }
+    if(d.etiquetaBajo){
+      const lb = new THREE.Mesh(new THREE.PlaneGeometry(3.6*SCALE,1.6*SCALE), matSolid(S.colors.rib,{rough:.8}));
+      const l = lv[2]; lb.position.set(l.a*0.55*SCALE, 9*SCALE, (l.b*0.86)*SCALE); root.add(lb);
+    }
+    if(refit){ camDolly.y = m.largo*0.5*SCALE; drag.dist = m.largo*SCALE*4.6; }
+    shadow.scale.set(m.pecho*SCALE*2.6, m.pecho*SCALE*2.6, 1);
+
+  } else {
+    /* ---------- PANTALONES ---------- */
+    const hip = bottomLevels(m), meta = hip.meta;
+    const off = meta.aH*0.48, rTop = m.muslo/Math.PI;
+    const maxX = bottomHalfWidth(m), uvo = {uv:'planar',minX:-maxX,maxX:maxX};
+    const g1 = loft(hip, Object.assign({vOff:meta.crotchY/m.largo, vSpan:1-meta.crotchY/m.largo}, uvo));
+    add(g1, art);
+    [-1,1].forEach(side=>{
+      const lg = legLevels(m, side);
+      const g = loft(lg, Object.assign({vSpan:meta.crotchY/m.largo}, uvo));
+      add(g, art);
+      const b = lg[0];
+      if(d.rib){
+        add(loft([{y:-0.5,a:b.a*0.82,b:b.b*0.82,cx:b.cx},{y:5,a:b.a*1.02,b:b.b*1.02,cx:b.cx}],
+          Object.assign({vFlat:0},uvo)), ribCol);
+      }
+      add(capGeom(lg[0],true), matSolid(S.colors.interior,{rough:1}));
+      if(d.bolsillos){
+        const sub = lg.filter(l=>l.y>meta.crotchY-24&&l.y<meta.crotchY-6);
+        if(sub.length>2) add(partialLoft(sub, Math.PI*1.15, Math.PI*1.85, 0.5),
+          matSolid(S.colors.mangas||S.colors.cuerpo));
+      }
+    });
+    const w = hip[hip.length-1];
+    add(loft([{y:m.largo-5,a:w.a*1.01,b:w.b*1.01},{y:m.largo+0.5,a:w.a*1.01,b:w.b*1.01}],
+      Object.assign({vFlat:0},uvo)), ribCol);
+    if(d.cordones){
+      [-1,1].forEach(s=>{
+        const c=new THREE.Mesh(new THREE.CylinderGeometry(.3*SCALE,.3*SCALE,16*SCALE,8),matSolid(S.colors.rib));
+        c.position.set(s*2.6*SCALE,(m.largo-8)*SCALE,(w.b+0.8)*SCALE); root.add(c);
+      });
+    }
+    if(refit){ camDolly.y = m.largo*0.5*SCALE; drag.dist = m.largo*SCALE*4.2; }
+    shadow.scale.set(m.cadera*SCALE*3, m.cadera*SCALE*3, 1);
+  }
+  shadow.position.y = 0.002;
+  shadow.visible = S.env.sombra;
+  applyEnv();
+  $('#slug').textContent = `${S.meta.codigo} · ${S.meta.nombre} · ${TYPES[S.type].label} · talla ${S.size} · ${FABRICS[S.fabric].label} ${S.gsm}g`;
+  $('#chipSize').textContent = S.size;
+  if(S.view==='flat') drawFlat();
+  if(window._booted) scheduleAutosave();
+}
+
+function applyEnv(){
+  const L = S.env.luz;
+  const pre = {estudio:[.65,.95,.35,.5], suave:[.95,.5,.5,.25], duro:[.3,1.5,.15,.7], tienda:[.75,.7,.6,.9]}[L]||[.65,.95,.35,.5];
+  lights.amb.intensity=pre[0]; lights.key.intensity=pre[1]; lights.fill.intensity=pre[2]; lights.rim.intensity=pre[3];
+  const bg = {papel:'#e9e7e1',blanco:'#ffffff',negro:'#141414',estudio:'#d8d5cd'}[S.env.fondo]||'#e9e7e1';
+  $('#stage').style.background = S.env.fondo==='papel'
+    ? '' : bg;
+  shadow.visible = S.env.sombra;
+}
+</script>
+<script>
+/* ---------- 10. VISTA PLANA (FLAT TÉCNICO + EDICIÓN) -------------------- */
+const F = {cv:null,x:null,ppc:1,ox:0,oy:0,drag:null};
+
+function layoutFlat(){
+  const cv=$('#flat2d'), st=$('#stage'); if(!cv) return;
+  const dpr=Math.min(devicePixelRatio,2);
+  cv.width=st.clientWidth*dpr; cv.height=st.clientHeight*dpr;
+  cv.style.width=st.clientWidth+'px'; cv.style.height=st.clientHeight+'px';
+  F.cv=cv; F.x=cv.getContext('2d'); F.x.setTransform(dpr,0,0,dpr,0,0);
+  if(S.view==='flat') drawFlat();
+}
+function fitFlat(){
+  const m=measures(), st=$('#stage');
+  const W = isTop() ? Math.max(m.hombro+m.manga*1.5, m.pecho*1.3) : m.cadera*1.6;
+  const H = m.largo;
+  F.ppc = Math.min((st.clientWidth-40)/W,(st.clientHeight-90)/H);
+  F.ox = st.clientWidth/2; F.oy = (st.clientHeight - H*F.ppc)/2;
+  return {m,W,H};
+}
+const c2p = (x,y)=>[F.ox + x*F.ppc, F.oy + y*F.ppc];
+
+/* silueta técnica derivada de las medidas */
+function outline(face){
+  const m = measures(), P=[];
+  if(isTop()){
+    const T=TYPES[S.type], ang=(T.def.fit==='oversize')?0.82:0.62;
+    const nW=m.cuelloA/2, nD=face==='front'?m.cuelloP:Math.max(2,m.cuelloP*0.3);
+    const shX=m.hombro/2, shY=3.5, sisaY=shY+m.sisa, chX=m.pecho/2, hemX=m.bajo/2;
+    const dx=Math.sin(ang), dy=Math.cos(ang);
+    const cuffO=[shX+dx*m.manga, shY+dy*m.manga];
+    const cuffI=[cuffO[0]-dy*m.bicep, cuffO[1]+dx*m.bicep];
+    const under=[chX, sisaY];
+    P.push([0,nD],[-nW*0.75,nD*0.92],[-nW,0.6],[-shX,shY]);
+    if(T.def.manga!=='sin'){ P.push([-cuffO[0],cuffO[1]],[-cuffI[0],cuffI[1]]); }
+    P.push([-under[0],under[1]],[-hemX,m.largo],[hemX,m.largo],[under[0],under[1]]);
+    if(T.def.manga!=='sin'){ P.push([cuffI[0],cuffI[1]],[cuffO[0],cuffO[1]]); }
+    P.push([shX,shY],[nW,0.6],[nW*0.75,nD*0.92],[0,nD]);
+  } else {
+    const wX=m.cintura/2, hX=m.cadera/2, cr=m.tiro, bX=m.bajoP/2;
+    const off=Math.max(legOffset(m), bX+1.2);
+    P.push([-wX,0],[-hX,cr*0.5],[-hX,cr],[-off-bX,m.largo],[-off+bX,m.largo],
+           [0,cr],[off-bX,m.largo],[off+bX,m.largo],[hX,cr],[hX,cr*0.5],[wX,0]);
+  }
+  return P;
+}
+function pathFrom(x,P){
+  x.beginPath();
+  P.forEach((p,i)=>{const q=c2p(p[0],p[1]); i?x.lineTo(q[0],q[1]):x.moveTo(q[0],q[1]);});
+  x.closePath();
+}
+
+/* zonas de impresión estándar (cm desde el centro y desde el HPS) */
+function zones(face){
+  if(isTop()) return face==='front'
+    ? [{n:'Pecho A3',x:0,y:20,w:30,h:40},{n:'Pecho izq.',x:-11,y:19,w:9,h:9}]
+    : [{n:'Espalda A3',x:0,y:16,w:32,h:42},{n:'Nuca',x:0,y:6,w:9,h:5}];
+  return face==='front'
+    ? [{n:'Muslo',x:-14,y:38,w:12,h:14}]
+    : [{n:'Bolsillo',x:-12,y:32,w:13,h:15}];
+}
+
+function drawFlat(){
+  if(!F.x) layoutFlat();
+  const x=F.x, st=$('#stage'); const {m}=fitFlat();
+  x.clearRect(0,0,st.clientWidth,st.clientHeight);
+  const face=S.face, P=outline(face), p=panelSize();
+
+  // sombra suave
+  x.save(); x.shadowColor='rgba(0,0,0,.18)'; x.shadowBlur=18; x.shadowOffsetY=6;
+  pathFrom(x,P); x.fillStyle=S.colors.cuerpo; x.fill(); x.restore();
+
+  // artwork recortado a la silueta
+  const fc=faceCanvas(face), fx=fc.getContext('2d');
+  fx.clearRect(0,0,fc.width,fc.height);
+  drawFabric(fx,fc.width,fc.height,S.colors.cuerpo);
+  drawLayers(fx,face,PPC,false);
+  x.save(); pathFrom(x,P); x.clip();
+  const dw=p.w*F.ppc, dh=p.h*F.ppc;
+  x.drawImage(fc, F.ox-dw/2, F.oy, dw, dh);
+  x.restore();
+
+  // mangas / rib en color propio
+  x.save(); pathFrom(x,P); x.clip();
+  if(isTop() && (S.colors.mangas)){
+    const shX=m.hombro/2;
+    x.fillStyle=S.colors.mangas;
+    x.fillRect(...c2p(-99,0), (99-shX)*F.ppc, m.largo*F.ppc);
+    x.fillRect(...c2p(shX,0), 99*F.ppc, m.largo*F.ppc);
+  }
+  if(S.det.rib||TYPES[S.type].def.rib){
+    x.fillStyle=S.colors.rib;
+    x.fillRect(...c2p(-99,m.largo-5), 198*F.ppc, 5*F.ppc);
+  }
+  x.restore();
+
+  // contorno técnico
+  pathFrom(x,P); x.strokeStyle='#14161a'; x.lineWidth=1.6; x.stroke();
+  if(isTop()){                                   // línea de cuello interior
+    const nW=m.cuelloA/2, nD=face==='front'?m.cuelloP:Math.max(2,m.cuelloP*0.3);
+    x.beginPath();
+    const a=c2p(-nW*0.96,1.9), b=c2p(0,nD+2.4), c=c2p(nW*0.96,1.9);
+    x.moveTo(a[0],a[1]); x.quadraticCurveTo(b[0],b[1]-8,b[0],b[1]); x.quadraticCurveTo(c[0],c[1]+8,c[0],c[1]);
+    x.strokeStyle='#14161a'; x.lineWidth=1.1; x.stroke();
+  }
+
+  // zonas de impresión
+  if(S.env.guias){
+    x.setLineDash([5,4]); x.strokeStyle='#4a6076aa'; x.lineWidth=1;
+    zones(face).forEach(z=>{
+      const q=c2p(z.x-z.w/2,z.y);
+      x.strokeRect(q[0],q[1],z.w*F.ppc,z.h*F.ppc);
+      x.setLineDash([]); x.fillStyle='#4a6076'; x.font='9px JetBrains Mono, monospace';
+      x.fillText(`${z.n} ${z.w}×${z.h}`,q[0],q[1]-4); x.setLineDash([5,4]);
+    });
+    x.setLineDash([]);
+  }
+
+  if(S.env.medidas) drawPOM(x,m,face);
+  drawHandles(x);
+  $('#chipInfo').textContent = `${p.w.toFixed(1)} × ${p.h.toFixed(1)} cm de panel`;
+}
+
+/* líneas de medida — el lenguaje de una ficha técnica real */
+function drawPOM(x,m,face){
+  x.strokeStyle=x.fillStyle='#e23a2e'; x.lineWidth=1; x.font='10px JetBrains Mono, monospace';
+  const seg=(x1,y1,x2,y2,label,anchor)=>{
+    const a=c2p(x1,y1), b=c2p(x2,y2);
+    x.beginPath(); x.moveTo(a[0],a[1]); x.lineTo(b[0],b[1]); x.stroke();
+    [a,b].forEach(q=>{x.beginPath();x.arc(q[0],q[1],2.2,0,7);x.fill();});
+    const mx=(a[0]+b[0])/2, my=(a[1]+b[1])/2;
+    x.save(); x.fillStyle='#fff'; const w=x.measureText(label).width+6;
+    x.fillRect(mx-w/2,my-7,w,13); x.fillStyle='#e23a2e';
+    x.textAlign='center'; x.fillText(label,mx,my+3); x.restore();
+  };
+  if(isTop()){
+    const shY=3.5, sisaY=shY+m.sisa;
+    seg(-m.pecho/2,sisaY+3,m.pecho/2,sisaY+3,`pecho ${m.pecho}`);
+    seg(-m.hombro/2,shY,m.hombro/2,shY,`hombro ${m.hombro}`);
+    seg(-m.bajo/2,m.largo-2,m.bajo/2,m.largo-2,`bajo ${m.bajo}`);
+    seg(0,0,0,m.largo,`largo ${m.largo}`);
+    seg(m.pecho/2+2,shY,m.pecho/2+2,sisaY,`sisa ${m.sisa}`);
+    const ang=(TYPES[S.type].def.fit==='oversize')?0.82:0.62;
+    if(TYPES[S.type].def.manga!=='sin')
+      seg(m.hombro/2,shY,m.hombro/2+Math.sin(ang)*m.manga,shY+Math.cos(ang)*m.manga,`manga ${m.manga}`);
+    seg(-m.cuelloA/2,1,m.cuelloA/2,1,`cuello ${m.cuelloA}`);
+  } else {
+    seg(-m.cintura/2,0,m.cintura/2,0,`cintura ${m.cintura}`);
+    seg(-m.cadera/2,m.tiro*0.55,m.cadera/2,m.tiro*0.55,`cadera ${m.cadera}`);
+    seg(m.cadera/2+3,0,m.cadera/2+3,m.tiro,`tiro ${m.tiro}`);
+    seg(-m.cadera*0.62,0,-m.cadera*0.62,m.largo,`largo ${m.largo}`);
+    seg(-m.cadera*0.5-m.bajoP/2,m.largo-2,-m.cadera*0.5+m.bajoP/2,m.largo-2,`bajo ${m.bajoP}`);
+  }
+}
+
+/* selección y manipuladores */
+function layerBox(l){
+  if(l.kind==='text'){
+    const lines=String(l.text||'').split('\n');
+    const w = Math.max(...lines.map(t=>t.length))*l.size*0.56 + (l.track||0)*8;
+    return {w, h:l.size*1.15*lines.length};
+  }
+  return {w:l.w, h:l.h};
+}
+function drawHandles(x){
+  const l = S.sel && S.layers[S.face].find(o=>o.id===S.sel);
+  if(!l) return;
+  const p=panelSize(), b=layerBox(l);
+  const c=c2p(l.x, l.y);
+  x.save(); x.translate(c[0],c[1]); x.rotate((l.rot||0)*Math.PI/180);
+  const w=b.w*F.ppc, h=b.h*F.ppc;
+  x.strokeStyle='#14161a'; x.lineWidth=1; x.setLineDash([4,3]);
+  x.strokeRect(-w/2,-h/2,w,h); x.setLineDash([]);
+  x.fillStyle='#fff'; x.strokeStyle='#14161a';
+  [[w/2,h/2],[-w/2,-h/2]].forEach(q=>{x.beginPath();x.rect(q[0]-5,q[1]-5,10,10);x.fill();x.stroke();});
+  x.beginPath(); x.moveTo(0,-h/2); x.lineTo(0,-h/2-16); x.stroke();
+  x.beginPath(); x.arc(0,-h/2-20,5,0,7); x.fill(); x.stroke();
+  x.restore();
+}
+function hit(px,py){
+  const arr=S.layers[S.face];
+  for(let i=arr.length-1;i>=0;i--){
+    const l=arr[i], b=layerBox(l), c=c2p(l.x,l.y);
+    const dx=px-c[0], dy=py-c[1], a=-(l.rot||0)*Math.PI/180;
+    const rx=dx*Math.cos(a)-dy*Math.sin(a), ry=dx*Math.sin(a)+dy*Math.cos(a);
+    const w=b.w*F.ppc/2, h=b.h*F.ppc/2;
+    if(Math.abs(rx)<w+10&&Math.abs(ry)<h+24) return {l,rx,ry,w,h};
+  }
+  return null;
+}
+function bindFlat(){
+  const cv=$('#flat2d');
+  cv.addEventListener('pointerdown',e=>{
+    const r=cv.getBoundingClientRect(), px=e.clientX-r.left, py=e.clientY-r.top;
+    const H=hit(px,py);
+    if(!H){ S.sel=null; drawFlat(); renderPanel(); return; }
+    S.sel=H.l.id;
+    let mode='move';
+    if(Math.abs(H.rx-H.w)<12&&Math.abs(H.ry-H.h)<12) mode='scale';
+    else if(H.ry < -H.h) mode='rot';
+    F.drag={mode,l:H.l,px,py,x0:H.l.x,y0:H.l.y,s0:H.l.kind==='text'?H.l.size:H.l.w,h0:H.l.h,r0:H.l.rot||0,
+      pre:serialize(true),moved:false};
+    cv.setPointerCapture(e.pointerId); drawFlat(); renderPanel();
+  });
+  cv.addEventListener('pointermove',e=>{
+    if(!F.drag) return;
+    const r=cv.getBoundingClientRect(), px=e.clientX-r.left, py=e.clientY-r.top;
+    const d=F.drag, l=d.l;
+    if(!d.moved){ d.moved=true; S.hist.push(d.pre); if(S.hist.length>25) S.hist.shift(); S.redo.length=0; }
+    if(d.mode==='move'){ l.x=+(d.x0+(px-d.px)/F.ppc).toFixed(1); l.y=+(d.y0+(py-d.py)/F.ppc).toFixed(1); }
+    else if(d.mode==='scale'){
+      const c=c2p(l.x,l.y), k=Math.hypot(px-c[0],py-c[1])/Math.max(8,Math.hypot(d.px-c[0],d.py-c[1]));
+      if(l.kind==='text') l.size=clamp(+(d.s0*k).toFixed(1),.5,120);
+      else { l.w=clamp(+(d.s0*k).toFixed(1),.5,200); l.h=clamp(+(d.h0*k).toFixed(1),.5,200); }
+    } else {
+      const c=c2p(l.x,l.y);
+      l.rot=Math.round(Math.atan2(py-c[1],px-c[0])*180/Math.PI+90);
+    }
+    buildTextures(); drawFlat();
+  });
+  addEventListener('pointerup',()=>{ if(F.drag){F.drag=null; build(); renderPanel();} });
+}
+</script>
+<script>
+/* ---------- 11. PANELES ------------------------------------------------- */
+const RAIL = [
+  {k:'prenda', t:'Prenda', sub:'silueta y construcción', i:'M6 3l4 2 2-1 2 1 4-2 2 5-3 1v11H7V9L4 8z'},
+  {k:'medidas',t:'Medidas',sub:'tabla POM y gradación', i:'M3 9h18M6 9v3M10 9v5M14 9v3M18 9v5M3 5h18v14H3z'},
+  {k:'color',  t:'Color', sub:'paneles y colorways', i:'M12 3a9 9 0 100 18 3 3 0 000-6 3 3 0 013-3h3a3 3 0 003-3 9 9 0 00-9-6z'},
+  {k:'tejido', t:'Tejido',sub:'material y estampación', i:'M3 6h18M3 12h18M3 18h18M8 3v18M16 3v18'},
+  {k:'arte',   t:'Arte',  sub:'capas del panel', i:'M4 4h10v10H4zM10 10h10v10H10z'},
+  {k:'vista',  t:'Vista', sub:'luz, fondo y guías', i:'M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z M12 9a3 3 0 100 6 3 3 0 000-6z'},
+  {k:'ficha',  t:'Ficha', sub:'tech pack y export', i:'M6 2h9l3 3v17H6zM9 8h7M9 12h7M9 16h5'}
+];
+let TAB='prenda';
+
+function renderRail(){
+  $('#rail').innerHTML = RAIL.map(r=>`<button data-k="${r.k}" class="${r.k===TAB?'on':''}">
+    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="${r.i}"/></svg>${r.t}</button>`).join('');
+  $('#rail').querySelectorAll('button').forEach(b=>b.onclick=()=>{TAB=b.dataset.k;renderRail();renderPanel();});
+}
+
+const swHTML = (sel,act) => `<div class="sw" data-act="${act}">`+PALETTE.map(c=>
+  `<button style="background:${c}" data-c="${c}" class="${c===sel?'on':''}"></button>`).join('')+`</div>`;
+const optHTML = (act,val,list) => `<div class="opts${list.length>4?' three':''}" data-act="${act}">`+
+  list.map(o=>`<button class="opt ${o.v===val?'on':''}" data-v="${o.v}">${o.t}${o.s?`<small>${o.s}</small>`:''}</button>`).join('')+`</div>`;
+const tglHTML = (act,on,label) => `<div class="switch"><span>${label}</span><button class="tgl ${on?'on':''}" data-act="${act}"></button></div>`;
+const rngHTML = (act,val,min,max,step,label,unit) =>
+  `<div class="grp"><label>${label}</label><div class="row"><input type="range" data-act="${act}" min="${min}" max="${max}" step="${step}" value="${val}"><span class="val">${val}${unit||''}</span></div></div>`;
+
+function renderPanel(){
+  const r = RAIL.find(x=>x.k===TAB), m = measures(), T = TYPES[S.type];
+  $('#inspTitle').textContent = r.t; $('#inspSub').textContent = r.sub;
+  const B = $('#inspBody');
+  let h = '';
+
+  if(TAB==='prenda'){
+    h += `<div class="grp"><label>Tipo de prenda</label>${optHTML('type',S.type,
+      Object.keys(TYPES).map(k=>({v:k,t:TYPES[k].label,s:TYPES[k].sub})))}</div>`;
+    h += `<div class="grp"><label>Construcción</label>
+      ${tglHTML('det.rib',S.det.rib,'Puños, cuello y bajo en canalé')}
+      ${tglHTML('det.capucha',S.det.capucha,'Capucha')}
+      ${tglHTML('det.cremallera',S.det.cremallera,'Cremallera frontal')}
+      ${tglHTML('det.botones',S.det.botones,'Botonadura')}
+      ${tglHTML('det.bolsillo',S.det.bolsillo,'Bolsillo canguro')}
+      ${tglHTML('det.bolsillos',S.det.bolsillos,'Bolsillos laterales')}
+      ${tglHTML('det.cordones',S.det.cordones,'Cordones')}
+      ${tglHTML('det.cintaLateral',S.det.cintaLateral,'Cinta lateral en manga')}
+      ${tglHTML('det.etiquetaCuello',S.det.etiquetaCuello,'Etiqueta interior de cuello')}
+      ${tglHTML('det.etiquetaBajo',S.det.etiquetaBajo,'Etiqueta tejida en el bajo')}</div>`;
+    h += `<div class="grp"><label>Identificación</label>
+      <div class="row"><input type="text" data-act="meta.codigo" value="${S.meta.codigo}" placeholder="Código"></div>
+      <div class="row"><input type="text" data-act="meta.nombre" value="${S.meta.nombre}" placeholder="Nombre del modelo"></div>
+      <div class="row"><input type="text" data-act="meta.temporada" value="${S.meta.temporada}" placeholder="Temporada"></div></div>`;
+    h += `<p class="note">El 3D se genera desde la tabla de medidas. Cambia una cifra en <b>Medidas</b> y la prenda se rehace al milímetro.</p>`;
+  }
+
+  if(TAB==='medidas'){
+    h += `<div class="grp"><label>Talla activa</label>${optHTML('size',S.size,SIZES.map(s=>({v:s,t:s})))}</div>`;
+    h += `<div class="grp"><label>Puntos de medida · talla ${S.size} (cm, en plano)</label><table class="spec">`;
+    for(const k in T.m) h += `<tr><td>${MLABEL[k]||k}</td><td><input type="number" step="0.5" data-pom="${k}" value="${m[k]}"></td></tr>`;
+    h += `</table></div>`;
+    h += `<div class="grp"><label>Gradación · toda la escala</label><table class="spec">
+      <tr><th>POM</th>${SIZES.map(s=>`<th>${s}</th>`).join('')}</tr>`;
+    for(const k in T.m){
+      h += `<tr class="${''}"><td>${(MLABEL[k]||k).replace(/ \(.*\)/,'')}</td>`;
+      SIZES.forEach(s=>{const i=SIZES.indexOf(s)-2;
+        h += `<th${s===S.size?' style="color:#e23a2e"':''}>${(T.m[k]+(T.grade[k]||0)*i).toFixed(1)}</th>`;});
+      h += `</tr>`;
+    }
+    h += `</table><p class="hint">Salto entre tallas: ${Object.entries(T.grade).slice(0,3).map(([k,v])=>`${k} ±${v}`).join(' · ')}. Tolerancia sugerida ±1 cm en anchos, ±1,5 cm en largos.</p></div>`;
+    h += tglHTML('env.medidas',S.env.medidas,'Ver líneas de medida en el plano');
+    h += `<div class="bar"><button class="ghost" data-act="resetPom">Volver a la base</button></div>`;
+  }
+
+  if(TAB==='color'){
+    const parts=[['cuerpo','Cuerpo'],['mangas','Mangas y bolsillo'],['rib','Canalé y bajo'],['interior','Forro / interior'],['avios','Avíos metálicos']];
+    parts.forEach(([k,lab])=>{
+      h += `<div class="grp"><label>${lab} <span style="float:right;font-family:var(--mono);color:#14161a">${S.colors[k]||'igual que cuerpo'}</span></label>
+        ${swHTML(S.colors[k],'color.'+k)}
+        <div class="row" style="margin-top:6px"><input type="text" data-act="colorhex.${k}" value="${S.colors[k]}" placeholder="#hex o vacío">
+        ${k==='mangas'?`<button class="opt" data-act="sameSleeve" title="Igual que el cuerpo">=</button>`:''}</div></div>`;
+    });
+    h += `<div class="grp"><label>Colorways guardadas</label><div id="cwList"></div>
+      <div class="bar"><button data-act="cwSave">Guardar colorway</button></div></div>`;
+    h += `<p class="note">Un colorway guarda los 5 paneles. Es lo que el taller necesita para cotizar variantes del mismo patrón.</p>`;
+  }
+
+  if(TAB==='tejido'){
+    h += `<div class="grp"><label>Material principal</label>${optHTML('fabric',S.fabric,
+      Object.keys(FABRICS).map(k=>({v:k,t:FABRICS[k].label,s:FABRICS[k].comp})))}</div>`;
+    h += rngHTML('gsm',S.gsm,120,600,10,'Gramaje','g/m²');
+    h += `<div class="grp"><label>Técnica de estampación</label>${optHTML('print',S.print,
+      Object.keys(PRINTS).map(k=>({v:k,t:PRINTS[k].label})))}
+      <p class="hint">${PRINTS[S.print].note}</p></div>`;
+    h += tglHTML('env.grano',S.env.grano,'Simular textura del tejido');
+    h += `<p class="note">${S.gsm<200?'Ligero: camiseta de verano.':S.gsm<320?'Medio: uso todo el año.':'Pesado: caída rígida, estructura de sudadera.'}</p>`;
+  }
+
+  if(TAB==='arte'){
+    h += `<div class="grp"><label>Panel · ${S.face==='front'?'delantero':'trasero'}</label>
+      <div class="add">
+        <button data-act="addText">+ Texto</button>
+        <button data-act="addImg">+ Imagen</button>
+        <button data-act="addShape">+ Forma</button>
+      </div>`;
+    const arr=S.layers[S.face];
+    h += arr.length ? arr.slice().reverse().map(l=>`<div class="layer ${l.id===S.sel?'on':''}" data-lid="${l.id}">
+        <span class="ic">${l.kind==='text'?'TXT':l.kind==='img'?'IMG':'FRM'}</span>
+        <span class="nm">${l.kind==='text'?(l.text||'').slice(0,20):l.name||l.shape}</span>
+        <button class="x" data-del="${l.id}">×</button></div>`).join('')
+      : `<p class="hint">Sin capas todavía. El arte se coloca en centímetros reales sobre el panel, así que lo que ves es lo que imprime el taller.</p>`;
+    h += `</div>`;
+    const l = arr.find(o=>o.id===S.sel);
+    if(l){
+      h += `<div class="grp"><label>Capa seleccionada</label>`;
+      if(l.kind==='text'){
+        h += `<div class="row"><input type="text" data-lay="text" value="${(l.text||'').replace(/"/g,'&quot;')}"></div>
+          <div class="row" style="margin-top:6px"><select data-lay="font">
+            ${['Archivo','JetBrains Mono','Arial Black','Georgia','Courier New','Impact'].map(f=>`<option ${l.font===f?'selected':''}>${f}</option>`).join('')}
+          </select></div>
+          ${rngHTML('lay.size',l.size,1,60,.5,'Altura de texto','cm')}
+          ${rngHTML('lay.track',l.track||0,-1,4,.1,'Interletraje','cm')}
+          ${swHTML(l.color,'lay.color')}`;
+      } else {
+        if(l.kind==='shape') h += `<div class="grp"><label>Tipo de forma</label>${optHTML('lay.shape',l.shape||'rect',
+          [{v:'rect',t:'Rectángulo'},{v:'circle',t:'Círculo'},{v:'line',t:'Línea'}])}</div>`;
+        h += rngHTML('lay.w',l.w,1,120,.5,'Ancho','cm') + rngHTML('lay.h',l.h,1,120,.5,'Alto','cm');
+        if(l.kind==='shape') h += swHTML(l.color,'lay.color');
+      }
+      h += rngHTML('lay.x',l.x,-40,40,.5,'Posición horizontal (desde el centro)','cm');
+      h += rngHTML('lay.y',l.y,0,140,.5,'Posición vertical (desde el cuello)','cm');
+      h += rngHTML('lay.rot',l.rot||0,-180,180,1,'Rotación','°');
+      h += rngHTML('lay.op',l.op==null?1:l.op,0,1,.05,'Opacidad','');
+      h += `<div class="grp"><label>Fusión</label>${optHTML('lay.blend',l.blend||'normal',
+        [{v:'normal',t:'Normal'},{v:'multiply',t:'Multiplicar'},{v:'screen',t:'Trama'},{v:'overlay',t:'Superponer'}])}</div>`;
+      h += `<div class="bar"><button class="ghost" data-act="center">Centrar</button><button class="ghost" data-act="dupe">Duplicar</button></div>`;
+      h += `</div>`;
+    }
+    h += tglHTML('env.guias',S.env.guias,'Ver zonas de impresión');
+    h += `<p class="note">Arrastra sobre el plano para mover. Esquina inferior derecha = escalar. Tirador superior = rotar.</p>`;
+    h += `<input type="file" id="fileImg" accept="image/*" style="display:none">`;
+  }
+
+  if(TAB==='vista'){
+    h += `<div class="grp"><label>Iluminación</label>${optHTML('env.luz',S.env.luz,
+      [{v:'estudio',t:'Estudio'},{v:'suave',t:'Suave'},{v:'duro',t:'Duro'},{v:'tienda',t:'Tienda'}])}</div>`;
+    h += `<div class="grp"><label>Fondo</label>${optHTML('env.fondo',S.env.fondo,
+      [{v:'papel',t:'Papel'},{v:'blanco',t:'Blanco'},{v:'negro',t:'Negro'},{v:'estudio',t:'Gris'}])}</div>`;
+    h += tglHTML('env.sombra',S.env.sombra,'Sombra de contacto');
+    h += tglHTML('env.spin',spinning,'Giro automático');
+    h += tglHTML('env.grano',S.env.grano,'Textura de tejido');
+    h += `<p class="note">Para fotos de producto: fondo blanco, luz de estudio y captura a 0°, 45° y 180°.</p>`;
+  }
+
+  if(TAB==='ficha'){
+    const f=FABRICS[S.fabric];
+    h += `<div class="grp"><label>Resumen</label><table class="spec">
+      <tr><td>Modelo</td><th>${S.meta.codigo}</th></tr>
+      <tr><td>Tipo</td><th>${T.label}</th></tr>
+      <tr><td>Talla base</td><th>M</th></tr>
+      <tr><td>Material</td><th>${f.label}</th></tr>
+      <tr><td>Composición</td><th>${f.comp}</th></tr>
+      <tr><td>Gramaje</td><th>${S.gsm} g/m²</th></tr>
+      <tr><td>Estampación</td><th>${PRINTS[S.print].label}</th></tr>
+      <tr><td>Colorway</td><th>${S.colors.cuerpo}</th></tr>
+    </table></div>`;
+    h += `<div class="grp"><label>Exportar</label>
+      <div class="add" style="grid-template-columns:1fr 1fr">
+        <button data-act="pngFront">PNG delante</button>
+        <button data-act="pngBack">PNG detrás</button>
+        <button data-act="png360">Tira 360°</button>
+        <button data-act="pngFlat">Plano técnico</button>
+        <button data-act="artPNG">Arte para taller</button>
+        <button data-act="json">Proyecto .json</button>
+      </div>
+      <div class="bar"><button data-act="techpack">Abrir ficha técnica</button></div></div>`;
+    h += `<div class="grp"><label>Importar</label>
+      <div class="add" style="grid-template-columns:1fr"><button data-act="loadJson">Cargar proyecto .json</button></div>
+      <input type="file" id="fileJson" accept="application/json" style="display:none"></div>`;
+    h += `<p class="note">El arte se exporta a 40 px/cm sobre el panel, con la zona de impresión marcada: es lo que se manda a serigrafía.</p>`;
+  }
+
+  B.innerHTML = h;
+  if(TAB==='color') renderCW();
+  bindPanel();
+}
+</script>
+<script>
+/* ---------- 12. ACCIONES ------------------------------------------------ */
+function selLayer(){ return S.layers[S.face].find(o=>o.id===S.sel); }
+function snap(){ S.hist.push(serialize(true)); if(S.hist.length>25) S.hist.shift(); S.redo.length=0; }
+
+/* Autoguardado del documento de trabajo (con retardo, para no saturar) */
+let _autoT=null;
+function scheduleAutosave(){
+  clearTimeout(_autoT);
+  _autoT=setTimeout(()=>{ Store.set(WORK_KEY, serialize(true)); }, 700);
+}
+
+function setPath(p,v){
+  const k=p.split('.');
+  if(k[0]==='color'){ S.colors[k[1]]=v; }
+  else if(k[0]==='colorhex'){ S.colors[k[1]]=v; }
+  else if(k[0]==='lay'){ const l=selLayer(); if(l) l[k[1]]=v; }
+  else if(k.length===2){ S[k[0]][k[1]]=v; }
+  else S[p]=v;
+}
+
+function setType(t){
+  snap(); S.type=t; S.over={}; S.sel=null;
+  const d=TYPES[t].def;
+  S.det={capucha:!!d.capucha,bolsillo:!!d.bolsillo,cordones:!!d.cordones,cremallera:!!d.cremallera,
+    botones:false,etiquetaCuello:true,etiquetaBajo:false,bolsillos:!!d.bolsillos,cintaLateral:false,rib:!!d.rib};
+  S.fabric=d.tejido; S.gsm=d.gsm;
+  if(!SIZES.includes(S.size)) S.size='M';
+  build(); renderPanel();
+}
+
+function addLayer(kind,extra){
+  snap();
+  const p=panelSize();
+  const base={id:uid(),kind,x:0,y:Math.round(p.h*0.28),rot:0,op:1,blend:'normal'};
+  const l = Object.assign(base,
+    kind==='text'?{text:'THANK YOU',size:6,font:'Archivo',weight:800,track:.2,color:'#14161a'}:
+    kind==='shape'?{shape:'rect',w:14,h:14,color:'#14161a'}:{w:20,h:20},extra);
+  S.layers[S.face].push(l); S.sel=l.id;
+  build(); renderPanel(); if(S.view==='flat') drawFlat();
+  return l;
+}
+
+function bindPanel(){
+  const B=$('#inspBody');
+  B.querySelectorAll('[data-act]').forEach(el=>{
+    const act=el.dataset.act;
+    if(el.classList.contains('tgl')){
+      el.onclick=()=>{
+        snap();
+        if(act==='env.spin'){ spinning=!spinning; }
+        else { const k=act.split('.'); S[k[0]][k[1]]=!S[k[0]][k[1]]; }
+        build(); renderPanel();
+      };
+    } else if(el.classList.contains('sw')){
+      el.querySelectorAll('button').forEach(b=>b.onclick=()=>{snap();setPath(act,b.dataset.c);build();renderPanel();});
+    } else if(el.classList.contains('opts')){
+      el.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+        snap(); const v=b.dataset.v;
+        if(act==='type') return setType(v);
+        if(act==='size'){ S.size=v; S.over={}; }
+        else setPath(act, v);
+        build(); renderPanel();
+      });
+    } else if(el.tagName==='INPUT'&&el.type==='range'){
+      const lbl=el.parentElement.querySelector('.val');
+      el.oninput=()=>{
+        const v=+el.value; if(lbl) lbl.textContent=v+(lbl.textContent.replace(/^[-\d.]+/,''));
+        if(act==='gsm') S.gsm=v; else setPath(act,v);
+        buildTextures(); if(S.view==='flat') drawFlat();
+      };
+      el.onpointerdown=()=>snap();
+      el.onchange=()=>build();
+    } else if(el.tagName==='INPUT'&&el.type==='text'){
+      el.onchange=()=>{snap();setPath(act,el.value.trim());build();renderPanel();};
+    } else if(el.tagName==='BUTTON'){
+      el.onclick=()=>ACT[act]&&ACT[act]();
+    }
+  });
+  B.querySelectorAll('[data-pom]').forEach(i=>i.onchange=()=>{
+    snap(); S.over[i.dataset.pom]=+i.value; build(); renderPanel();
+  });
+  B.querySelectorAll('[data-lay]').forEach(i=>{
+    let pre=null, pushed=false;
+    i.onfocus=()=>{ pre=serialize(true); pushed=false; };
+    i.oninput=()=>{ const l=selLayer(); if(!l) return;
+      if(!pushed){ S.hist.push(pre||serialize(true)); if(S.hist.length>25)S.hist.shift(); S.redo.length=0; pushed=true; }
+      l[i.dataset.lay]=i.value; buildTextures(); if(S.view==='flat')drawFlat(); };
+    i.onchange=()=>{ const l=selLayer(); if(!l) return; l[i.dataset.lay]=i.value; build(); };
+  });
+  B.querySelectorAll('[data-lid]').forEach(d=>d.onclick=e=>{
+    if(e.target.dataset.del) return;
+    S.sel=d.dataset.lid; renderPanel(); if(S.view==='flat')drawFlat();
+  });
+  B.querySelectorAll('[data-del]').forEach(b=>b.onclick=e=>{
+    e.stopPropagation(); snap();
+    S.layers[S.face]=S.layers[S.face].filter(l=>l.id!==b.dataset.del);
+    S.sel=null; build(); renderPanel(); if(S.view==='flat')drawFlat();
+  });
+}
+
+/* colorways */
+let CW=[];
+function renderCW(){
+  const el=$('#cwList'); if(!el) return;
+  el.innerHTML = CW.length?CW.map((c,i)=>`<div class="layer" data-cw="${i}">
+    <span style="display:flex;gap:2px">${['cuerpo','mangas','rib','avios'].map(k=>
+      `<i style="display:block;width:12px;height:16px;background:${c[k]||c.cuerpo}"></i>`).join('')}</span>
+    <span class="nm">${c.n}</span><button class="x" data-cwd="${i}">×</button></div>`).join('')
+    : `<p class="hint">Guarda combinaciones para comparar variantes del mismo modelo.</p>`;
+  el.querySelectorAll('[data-cw]').forEach(d=>d.onclick=e=>{
+    if(e.target.dataset.cwd) return;
+    snap(); S.colors=Object.assign({},CW[+d.dataset.cw]); delete S.colors.n; build(); renderPanel();
+  });
+  el.querySelectorAll('[data-cwd]').forEach(b=>b.onclick=e=>{e.stopPropagation();CW.splice(+b.dataset.cwd,1);renderCW();});
+}
+
+/* ---------- 13. EXPORTACIÓN -------------------------------------------- */
+function download(name,url){
+  const a=document.createElement('a'); a.href=url; a.download=name; a.click();
+  toast('Descargado · '+name);
+}
+function shot(angleDeg){
+  const prev=root.rotation.y;
+  root.rotation.y = -angleDeg*Math.PI/180;
+  renderer.render(scene,camera);
+  const d = renderer.domElement.toDataURL('image/png');
+  root.rotation.y = prev; return d;
+}
+function artCanvas(face,ppc){
+  ppc=ppc||40;
+  const p=panelSize(), c=document.createElement('canvas');
+  c.width=Math.round(p.w*ppc); c.height=Math.round(p.h*ppc);
+  const x=c.getContext('2d'); drawLayers(x,face,ppc,false); return c;
+}
+const ACT = {
+  sameSleeve(){ snap(); S.colors.mangas=''; build(); renderPanel(); },
+  resetPom(){ snap(); S.over={}; build(); renderPanel(); toast('Medidas base restauradas'); },
+  cwSave(){ CW.push(Object.assign({n:'CW'+(CW.length+1)},S.colors)); renderCW(); },
+  addText(){ addLayer('text'); },
+  addShape(){ addLayer('shape'); },
+  addImg(){
+    const f=$('#fileImg'); f.click();
+    f.onchange=()=>{
+      const file=f.files[0]; if(!file) return;
+      const rd=new FileReader();
+      rd.onload=()=>{
+        const img=new Image();
+        img.onload=()=>{
+          const w=22, h=+(22*img.height/img.width).toFixed(1);
+          addLayer('img',{img,src:rd.result,w,h,name:file.name.slice(0,18)});
+        };
+        img.src=rd.result;
+      };
+      rd.readAsDataURL(file);
+    };
+  },
+  center(){ const l=selLayer(); if(l){snap();l.x=0;build();renderPanel();} },
+  dupe(){ const l=selLayer(); if(!l)return; snap(); const c=Object.assign({},l,{id:uid(),x:l.x+4,y:l.y+4});
+    S.layers[S.face].push(c); S.sel=c.id; build(); renderPanel(); },
+  pngFront(){ download(`${S.meta.codigo}-delante.png`, shot(0)); },
+  pngBack(){ download(`${S.meta.codigo}-detras.png`, shot(180)); },
+  png360(){
+    const N=8, w=renderer.domElement.width, h=renderer.domElement.height;
+    const c=document.createElement('canvas'); c.width=w*N/2; c.height=h/2;
+    const x=c.getContext('2d'); let i=0;
+    const step=()=>{
+      if(i>=N){ download(`${S.meta.codigo}-360.png`,c.toDataURL('image/png')); return; }
+      const img=new Image();
+      img.onload=()=>{ x.drawImage(img,i*w/2,0,w/2,h/2); i++; step(); };
+      img.src=shot(i*360/N);
+    };
+    step();
+  },
+  pngFlat(){
+    const prev=S.view; S.view='flat'; layoutFlat(); drawFlat();
+    download(`${S.meta.codigo}-plano-${S.face}.png`, F.cv.toDataURL('image/png'));
+    S.view=prev;
+  },
+  artPNG(){ download(`${S.meta.codigo}-arte-${S.face}.png`, artCanvas(S.face,40).toDataURL('image/png')); },
+  json(){
+    const blob=new Blob([serialize(true)],{type:'application/json'});
+    download(`${S.meta.codigo}.json`, URL.createObjectURL(blob));
+  },
+  loadJson(){
+    const f=$('#fileJson'); f.click();
+    f.onchange=()=>{ const r=new FileReader(); r.onload=()=>hydrate(r.result); r.readAsText(f.files[0]); };
+  },
+  techpack(){ techpack(); }
+};
+
+function serialize(withImg){
+  const cp = JSON.parse(JSON.stringify({
+    type:S.type,size:S.size,over:S.over,colors:S.colors,fabric:S.fabric,gsm:S.gsm,print:S.print,
+    det:S.det,meta:S.meta,env:S.env,
+    layers:{front:S.layers.front.map(strip),back:S.layers.back.map(strip)}
+  }));
+  function strip(l){ const o=Object.assign({},l); delete o.img; if(!withImg) delete o.src; return o; }
+  return JSON.stringify(cp,null,1);
+}
+function hydrate(txt){
+  try{
+    const d=JSON.parse(txt);
+    Object.assign(S,{type:d.type,size:d.size,over:d.over||{},colors:d.colors,fabric:d.fabric,
+      gsm:d.gsm,print:d.print,det:d.det,meta:d.meta,env:Object.assign(S.env,d.env||{})});
+    S.layers={front:[],back:[]}; S.sel=null;
+    ['front','back'].forEach(f=>(d.layers[f]||[]).forEach(l=>{
+      if(l.src){ const img=new Image(); img.onload=()=>{build();}; img.src=l.src; l.img=img; }
+      S.layers[f].push(l);
+    }));
+    build(); renderPanel(); toast('Proyecto cargado');
+  }catch(e){ toast('Archivo no válido'); }
+}
+
+/* ---------- 14. FICHA TÉCNICA ------------------------------------------ */
+function techpack(){
+  const m=measures(), T=TYPES[S.type], f=FABRICS[S.fabric];
+  const prevF=S.face, prevV=S.view; S.view='flat';
+  S.face='front'; layoutFlat(); drawFlat(); const imgF=F.cv.toDataURL();
+  S.face='back'; drawFlat(); const imgB=F.cv.toDataURL();
+  S.face=prevF; S.view=prevV; layoutFlat(); if(S.view==='flat') drawFlat();
+
+  const rows = Object.keys(T.m).map(k=>`<tr><td>${MLABEL[k]||k}</td>${
+    SIZES.map(s=>{const i=SIZES.indexOf(s)-2;
+      return `<td${s===S.size?' class="hi"':''}>${(T.m[k]+(T.grade[k]||0)*i).toFixed(1)}</td>`;}).join('')
+    }<td>±1,0</td></tr>`).join('');
+  const bom = [
+    ['Tejido principal', f.label, f.comp, S.gsm+' g/m²', S.colors.cuerpo],
+    S.det.rib?['Canalé cuello/puño/bajo','Rib 2x1','95% CO / 5% EA','—',S.colors.rib]:null,
+    S.colors.mangas?['Panel contraste',f.label,f.comp,S.gsm+' g/m²',S.colors.mangas]:null,
+    S.det.cremallera?['Cremallera','Metálica nº5','—','—',S.colors.avios]:null,
+    S.det.cordones?['Cordón','Plano 8 mm','100% CO','—',S.colors.rib]:null,
+    S.det.botones?['Botones','15 mm','Metal','5 ud',S.colors.avios]:null,
+    S.det.etiquetaCuello?['Etiqueta cuello','Tejida','Poliéster','1 ud','#ffffff']:null,
+    ['Hilo','Poliéster 40/2','—','—',S.colors.costura||S.colors.cuerpo],
+    ['Estampación',PRINTS[S.print].label,PRINTS[S.print].note,'—','—']
+  ].filter(Boolean).map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('');
+
+  const html=`<!doctype html><html lang="es"><head><meta charset="utf-8">
+<title>${S.meta.codigo} — ficha técnica</title>
+<style>
+@page{size:A4;margin:14mm}
+body{font:12px/1.45 -apple-system,system-ui,sans-serif;color:#14161a;margin:0;padding:18px;background:#fff}
+h1{font-size:19px;margin:0;letter-spacing:.06em;text-transform:uppercase}
+.sub{font-family:ui-monospace,monospace;font-size:10px;color:#777;letter-spacing:.08em;margin:3px 0 16px}
+h2{font-size:11px;letter-spacing:.14em;text-transform:uppercase;border-bottom:1.5px solid #14161a;padding-bottom:4px;margin:22px 0 8px}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th,td{border:1px solid #ddd;padding:4px 6px;text-align:left}
+th{background:#f3f1ec;font-weight:600;font-size:10px;letter-spacing:.04em}
+td.hi{background:#fdecea;color:#c0281d;font-weight:700}
+.flats{display:flex;gap:12px;margin:10px 0}
+.flats figure{flex:1;margin:0;border:1px solid #eee;padding:6px}
+.flats img{width:100%;display:block}
+figcaption{font-family:ui-monospace,monospace;font-size:9px;color:#777;letter-spacing:.06em;padding-top:4px}
+.meta{display:flex;gap:22px;flex-wrap:wrap;font-size:11px}
+.meta div b{display:block;font-family:ui-monospace,monospace;font-size:9px;color:#888;font-weight:400;letter-spacing:.08em}
+</style></head><body>
+<h1>${S.meta.nombre}</h1>
+<div class="sub">${S.meta.codigo} · ${S.meta.temporada} · ${T.label} · generado ${new Date().toLocaleDateString('es-ES')}</div>
+<div class="meta">
+ <div><b>TIPO</b>${T.label} — ${T.sub}</div>
+ <div><b>TALLA MUESTRA</b>${S.size}</div>
+ <div><b>ESCALA</b>${SIZES[0]}–${SIZES[SIZES.length-1]}</div>
+ <div><b>MATERIAL</b>${f.label} ${S.gsm} g/m²</div>
+ <div><b>ESTAMPACIÓN</b>${PRINTS[S.print].label}</div>
+</div>
+<h2>Dibujo plano</h2>
+<div class="flats">
+ <figure><img src="${imgF}"><figcaption>DELANTERO</figcaption></figure>
+ <figure><img src="${imgB}"><figcaption>TRASERO</figcaption></figure>
+</div>
+<h2>Tabla de medidas (cm, en plano)</h2>
+<table><tr><th>Punto de medida</th>${SIZES.map(s=>`<th>${s}</th>`).join('')}<th>Tol.</th></tr>${rows}</table>
+<h2>Lista de materiales (BOM)</h2>
+<table><tr><th>Componente</th><th>Referencia</th><th>Composición / nota</th><th>Cantidad</th><th>Color</th></tr>${bom}</table>
+<h2>Construcción</h2>
+<ul>
+ <li>Costuras de unión con overlock 4 hilos; recubierta en cuello, bajo y puños.</li>
+ <li>Cinta de refuerzo en hombro y escote.</li>
+ <li>Pespunte de remate a 1 cm salvo indicación contraria.</li>
+ <li>Etiqueta de composición y lavado en costura lateral izquierda.</li>
+ <li>Tolerancia general ±1 cm en anchos y ±1,5 cm en largos.</li>
+</ul>
+</body></html>`;
+  const blob=new Blob([html],{type:'text/html'});
+  const url=URL.createObjectURL(blob);
+  const w=window.open(url,'_blank');
+  if(!w) download(`${S.meta.codigo}-ficha.html`,url); else toast('Ficha técnica abierta');
+}
+
+/* ---------- 15. ARRANQUE ----------------------------------------------- */
+function bindTop(){
+  $('#viewSeg').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    S.view=b.dataset.v;
+    $('#viewSeg').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+    $('#stage').classList.toggle('flatmode',S.view==='flat');
+    if(S.view==='flat'){ layoutFlat(); drawFlat(); }
+  });
+  $('#faceSeg').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    S.face=b.dataset.f; S.sel=null;
+    $('#faceSeg').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+    if(S.view==='flat') drawFlat(); else { drag.ry = S.face==='back'?Math.PI:0; }
+    renderPanel();
+  });
+  $('#angleSeg').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    const a=b.dataset.a;
+    if(a==='spin'){ spinning=!spinning; syncSpin(); return; }
+    spinning=false; syncSpin(); drag.ry = -(+a)*Math.PI/180;
+  });
+  $('#btnExport').onclick=()=>{TAB='ficha';renderRail();renderPanel();};
+  $('#btnSave').onclick=save;
+  $('#btnUndo').onclick=doUndo;
+  $('#btnRedo').onclick=doRedo;
+  bindKeys();
+}
+function syncSpin(){ $('#angleSeg').querySelector('[data-a=spin]').classList.toggle('on',spinning); }
+
+/* deshacer / rehacer */
+function doUndo(){
+  if(!S.hist.length){ toast('Nada que deshacer'); return; }
+  S.redo.push(serialize(true)); if(S.redo.length>25) S.redo.shift();
+  hydrate(S.hist.pop()); toast('Deshecho');
+}
+function doRedo(){
+  if(!S.redo.length){ toast('Nada que rehacer'); return; }
+  S.hist.push(serialize(true)); if(S.hist.length>25) S.hist.shift();
+  hydrate(S.redo.pop()); toast('Rehecho');
+}
+
+/* atajos de teclado — no interfieren mientras se escribe en un campo */
+function bindKeys(){
+  addEventListener('keydown',e=>{
+    const tag=(e.target.tagName||'').toLowerCase();
+    const typing = tag==='input'||tag==='textarea'||tag==='select'||e.target.isContentEditable;
+    const mod = e.ctrlKey||e.metaKey;
+    if(mod && e.key.toLowerCase()==='s'){ e.preventDefault(); save(); return; }
+    if(mod && e.key.toLowerCase()==='z'){ e.preventDefault(); e.shiftKey?doRedo():doUndo(); return; }
+    if(mod && e.key.toLowerCase()==='y'){ e.preventDefault(); doRedo(); return; }
+    if(typing) return;
+    const l=selLayer();
+    if((e.key==='Delete'||e.key==='Backspace') && l){
+      e.preventDefault(); snap();
+      S.layers[S.face]=S.layers[S.face].filter(o=>o.id!==l.id);
+      S.sel=null; build(); renderPanel(); if(S.view==='flat')drawFlat(); return;
+    }
+    if(mod && e.key.toLowerCase()==='d' && l){ e.preventDefault(); ACT.dupe(); return; }
+    if(e.key==='Escape' && S.sel){ S.sel=null; renderPanel(); if(S.view==='flat')drawFlat(); return; }
+    if(l && e.key.startsWith('Arrow')){
+      e.preventDefault(); snap();
+      const step=e.shiftKey?2:0.5;
+      if(e.key==='ArrowLeft')  l.x=+(l.x-step).toFixed(1);
+      if(e.key==='ArrowRight') l.x=+(l.x+step).toFixed(1);
+      if(e.key==='ArrowUp')    l.y=+(l.y-step).toFixed(1);
+      if(e.key==='ArrowDown')  l.y=+(l.y+step).toFixed(1);
+      build(); if(S.view==='flat')drawFlat();
+    }
+  });
+}
+
+function save(){
+  const ok = Store.set(WORK_KEY, serialize(true));
+  if(ok) toast('Guardado en este navegador'); else { ACT.json(); toast('Sin almacenamiento: descargado como .json'); }
+}
+function boot(){
+  initGL(); bindFlat(); bindTop(); renderRail();
+  setType('tee_over');
+  let cargado=false;
+  try{
+    const saved=Store.get(WORK_KEY);
+    if(saved){ hydrate(saved); cargado=true; }
+  }catch(e){}
+  if(!cargado) addLayer('text',{text:'THANK YOU',size:7,y:26});
+  S.sel=null; S.hist=[]; S.redo=[]; window._booted=true; build(); renderPanel();
+  toast(cargado?'Proyecto recuperado — sigue donde lo dejaste':'Arrastra la prenda para girarla');
+}
+function fail3D(){
+  document.body.innerHTML='<div style="max-width:520px;margin:16vh auto;padding:0 24px;font-family:var(--sans)">'+
+    '<div style="font-weight:800;letter-spacing:.16em;font-size:15px;margin-bottom:10px">PATRÓN<span style="color:#e23a2e">.</span></div>'+
+    '<p style="color:#4a5057;line-height:1.6">No se ha podido cargar el motor 3D. Abre la app con el servidor incluido '+
+    '(<code>node server.mjs</code>) o comprueba tu conexión, y vuelve a cargar la página.</p></div>';
+}
+if(window.THREE) boot();
+else addEventListener('load',()=>window.THREE?boot():fail3D());
+</script>
+</body></html>
