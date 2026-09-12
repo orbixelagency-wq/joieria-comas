@@ -327,11 +327,41 @@ const TYPES = {
     grade:{pecho:3,largo:2,hombro:1.5,manga:2,bicep:1,bajo:2.5,cuelloA:.5,cuelloP:.2,sisa:1.2},
     def:{cuello:'rib',manga:'larga',fit:'oversize',gsm:520,tejido:'nylon',rib:true,cremallera:true}
   },
+  tank: {
+    label:'Camiseta tirantes', fam:'top', sub:'sin manga · sisa abierta',
+    m:{pecho:50, largo:70, hombro:30, manga:0, bicep:0, bajo:49, cuelloA:20, cuelloP:11, sisa:26},
+    grade:{pecho:2.5,largo:2,hombro:1,manga:0,bicep:0,bajo:2.5,cuelloA:.5,cuelloP:.3,sisa:1.2},
+    def:{cuello:'redondo',manga:'sin',fit:'regular',gsm:160,tejido:'jersey'}
+  },
+  crop: {
+    label:'Crop top', fam:'top', sub:'corto · boxy',
+    m:{pecho:52, largo:44, hombro:42, manga:18, bicep:18, bajo:50, cuelloA:18, cuelloP:8, sisa:20},
+    grade:{pecho:2.5,largo:1.5,hombro:1.2,manga:1,bicep:1,bajo:2.5,cuelloA:.5,cuelloP:.2,sisa:1},
+    def:{cuello:'redondo',manga:'corta',fit:'regular',gsm:180,tejido:'jersey'}
+  },
+  polo: {
+    label:'Polo', fam:'top', sub:'cuello y tapeta',
+    m:{pecho:56, largo:72, hombro:46, manga:22, bicep:19, bajo:54, cuelloA:16, cuelloP:6, sisa:23},
+    grade:{pecho:2.5,largo:2,hombro:1.2,manga:1,bicep:1,bajo:2.5,cuelloA:.5,cuelloP:.2,sisa:1},
+    def:{cuello:'polo',manga:'corta',fit:'regular',gsm:220,tejido:'jersey'}
+  },
+  dress: {
+    label:'Vestido', fam:'top', sub:'línea A · manga corta',
+    m:{pecho:48, largo:95, hombro:38, manga:18, bicep:17, bajo:64, cuelloA:18, cuelloP:9, sisa:22},
+    grade:{pecho:2.5,largo:2.5,hombro:1.2,manga:1,bicep:1,bajo:3,cuelloA:.5,cuelloP:.2,sisa:1},
+    def:{cuello:'redondo',manga:'corta',fit:'regular',gsm:200,tejido:'jersey'}
+  },
   pants: {
     label:'Pantalón', fam:'bottom', sub:'recto',
     m:{cintura:41, cadera:58, largo:104, tiro:30, muslo:34, bajoP:22},
     grade:{cintura:2,cadera:2.5,largo:1.5,tiro:1,muslo:1.5,bajoP:.8},
     def:{fit:'recto',gsm:340,tejido:'denim',bolsillos:true}
+  },
+  cargo: {
+    label:'Pantalón cargo', fam:'bottom', sub:'holgado · bolsillos',
+    m:{cintura:42, cadera:62, largo:102, tiro:31, muslo:40, bajoP:26},
+    grade:{cintura:2,cadera:2.5,largo:1.5,tiro:1,muslo:1.6,bajoP:.9},
+    def:{fit:'holgado',gsm:320,tejido:'nylon',bolsillos:true,cordones:true}
   },
   jogger: {
     label:'Jogger', fam:'bottom', sub:'puño elástico',
@@ -436,7 +466,7 @@ function sect(t,a,b,n){
 /* levels: [{y,a,b,cx}] de abajo a arriba. uv 'wrap' (tops) o 'planar'.     */
 function loft(levels, opt){
   opt = opt||{};
-  const SEG = opt.seg||64, L = levels.length;
+  const SEG = opt.seg||72, L = levels.length;
   const pos=[], uv=[], idx=[];
   const vAcc=[0];
   for(let i=1;i<L;i++) vAcc.push(vAcc[i-1] + Math.abs(levels[i].y - levels[i-1].y));
@@ -554,8 +584,8 @@ function legLevels(m, side){
 </script>
 <script>
 /* ---------- 7. ESCENA 3D ------------------------------------------------ */
-let renderer, scene, camera, root, lights={}, shadow, spinning=false;
-let texFront, texBack, texCanvas, texCtx, reliefCanvas, reliefCtx, tex, reliefTex;
+let renderer, scene, camera, root, lights={}, shadow, spinning=false, capturing=false;
+let texFront, texBack, texCanvas, texCtx, reliefCanvas, reliefCtx, tex, reliefTex, fabricBump;
 const drag = {on:false,x:0,y:0,ry:0,rx:0,dist:16};
 
 function initGL(){
@@ -586,12 +616,28 @@ function initGL(){
   tex = new THREE.CanvasTexture(texCanvas); tex.anisotropy = 8;
   reliefTex = new THREE.CanvasTexture(reliefCanvas);
 
+  // micro-relieve de tejido (se repite sobre los paneles lisos → aspecto textil)
+  const fb=document.createElement('canvas'); fb.width=fb.height=128;
+  const fx=fb.getContext('2d'), id=fx.createImageData(128,128);
+  for(let i=0;i<id.data.length;i+=4){ const v=190+Math.random()*60; id.data[i]=id.data[i+1]=id.data[i+2]=v; id.data[i+3]=255; }
+  fx.putImageData(id,0,0);
+  fx.globalAlpha=.22; fx.strokeStyle='#777';
+  for(let y=0;y<128;y+=3){ fx.beginPath(); fx.moveTo(0,y); fx.lineTo(128,y); fx.stroke(); }
+  fabricBump=new THREE.CanvasTexture(fb);
+  fabricBump.wrapS=fabricBump.wrapT=THREE.RepeatWrapping; fabricBump.repeat.set(9,9);
+
+  // tono de render más suave y de estudio
+  if('outputEncoding' in renderer) renderer.outputEncoding = THREE.sRGBEncoding;
+  if('toneMapping' in renderer){ renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.15; }
+  tex.encoding = THREE.sRGBEncoding;
+
   bindOrbit(cv);
   resize(); addEventListener('resize', resize);
   (function tick(){
     requestAnimationFrame(tick);
     if(spinning){ drag.ry += 0.008; }
-    root.rotation.y += (drag.ry - root.rotation.y)*0.18;
+    if(capturing){ root.rotation.y = drag.ry; }
+    else root.rotation.y += (drag.ry - root.rotation.y)*0.18;
     root.rotation.x += (clamp(drag.rx,-0.5,0.5) - root.rotation.x)*0.18;
     camera.position.set(0, camDolly.y, drag.dist);
     camera.lookAt(0, camDolly.y*0.92, 0);
@@ -730,11 +776,15 @@ function matArt(){
 }
 function matSolid(color,{rough,metal,side}={}){
   const f = FABRICS[S.fabric];
-  return new THREE.MeshStandardMaterial({
-    color:new THREE.Color(color||S.colors.cuerpo),
+  const col = new THREE.Color(color||S.colors.cuerpo);
+  if(col.convertSRGBToLinear && 'outputEncoding' in renderer) col.convertSRGBToLinear();
+  const mat = new THREE.MeshStandardMaterial({
+    color:col,
     roughness:rough!=null?rough:f.rough, metalness:metal!=null?metal:f.sheen*0.25,
     side:side||THREE.DoubleSide
   });
+  if(S.env.grano && fabricBump && (metal==null || metal<0.4)){ mat.bumpMap=fabricBump; mat.bumpScale=0.009*f.grain; }
+  return mat;
 }
 function partialLoft(levels, t0, t1, expand, seg){
   seg = seg||28;
@@ -808,10 +858,10 @@ function build(){
     if(T.def.manga!=='sin'){
       const ang = (T.def.fit==='oversize') ? 0.80 : 0.62;
       const rA = solveA(m.sisa*1.06,1), rB = solveA(m.bicep*0.86,1);
-      const N=12, slv=[];
+      const N=16, slv=[];
       for(let i=0;i<N;i++){const t=i/(N-1);slv.push({y:t*m.manga, a:rA+(rB-rA)*t, b:rA+(rB-rA)*t});}
       [-1,1].forEach(side=>{
-        const g = loft(slv,{uv:'planar',minX:-rA,maxX:rA,seg:26,vFlat:0});
+        const g = loft(slv,{uv:'planar',minX:-rA,maxX:rA,seg:32,vFlat:0});
         const q = new THREE.Quaternion().setFromUnitVectors(
           new THREE.Vector3(0,1,0), new THREE.Vector3(side*Math.sin(ang),-Math.cos(ang),0).normalize());
         const mtx = new THREE.Matrix4().makeRotationFromQuaternion(q);
@@ -820,7 +870,7 @@ function build(){
         const sm = add(g, matSolid(S.colors.mangas||S.colors.cuerpo));
         if(d.rib||T.def.rib){
           const cf=[{y:m.manga-4,a:rB*1.02,b:rB*1.02},{y:m.manga+0.6,a:rB*0.86,b:rB*0.86}];
-          const cg = loft(cf,{uv:'planar',minX:-rB,maxX:rB,seg:26,vFlat:0});
+          const cg = loft(cf,{uv:'planar',minX:-rB,maxX:rB,seg:32,vFlat:0});
           cg.applyMatrix4(mtx); add(cg, ribCol);
         }
         if(d.cintaLateral){
@@ -880,6 +930,15 @@ function build(){
           matSolid(S.colors.rib,{rough:.9}));
         c.position.set(s*3.5*SCALE,(m.largo-9)*SCALE,(top.b+1.4)*SCALE); root.add(c);
       });
+    }
+    if(S.type==='polo'){
+      const pts=lv.filter(l=>l.y>=m.largo-15 && l.y<=m.largo-1).map(l=>[0,l.y,l.b+0.25]);
+      if(pts.length>1) add(ribbon(pts,3.4), matSolid(S.colors.cuerpo,{rough:.9}));
+      for(let i=0;i<2;i++){
+        const y=m.largo-6-i*5, l=lv.reduce((p,c)=>Math.abs(c.y-y)<Math.abs(p.y-y)?c:p);
+        const bt=new THREE.Mesh(new THREE.CylinderGeometry(.6*SCALE,.6*SCALE,.3*SCALE,16),trim);
+        bt.rotation.x=Math.PI/2; bt.position.set(0,l.y*SCALE,(l.b+0.5)*SCALE); root.add(bt);
+      }
     }
     if(d.etiquetaCuello){
       const lb = new THREE.Mesh(new THREE.PlaneGeometry(5*SCALE,2.4*SCALE), matSolid('#ffffff',{rough:.8}));
@@ -1279,6 +1338,16 @@ function renderPanel(){
         <button class="x" data-del="${l.id}">×</button></div>`).join('')
       : `<p class="hint">Sin capas todavía. El arte se coloca en centímetros reales sobre el panel, así que lo que ves es lo que imprime el taller.</p>`;
     h += `</div>`;
+    h += `<div class="grp"><label>Plantillas de estampación</label>
+      <div class="add" style="grid-template-columns:repeat(3,1fr)">
+        <button data-act="tplCenter">Centro</button>
+        <button data-act="tplLeftChest">Pecho izq.</button>
+        <button data-act="tplStack">Dos líneas</button>
+        <button data-act="tplVertical">Vertical</button>
+        <button data-act="tplOutline">Contorno</button>
+        <button data-act="tplBadge">Sello ★</button>
+      </div>
+      <p class="hint">Coloca el arte en las posiciones estándar del panel actual. Luego ajústalo a tu gusto.</p></div>`;
     const l = arr.find(o=>o.id===S.sel);
     if(l){
       h += `<div class="grp"><label>Capa seleccionada</label>`;
@@ -1338,6 +1407,7 @@ function renderPanel(){
         <button data-act="pngFront">PNG delante</button>
         <button data-act="pngBack">PNG detrás</button>
         <button data-act="png360">Tira 360°</button>
+        <button data-act="video">Vídeo 360°</button>
         <button data-act="pngFlat">Plano técnico</button>
         <button data-act="artPNG">Arte para taller</button>
         <button data-act="json">Proyecto .json</button>
@@ -1395,6 +1465,27 @@ function addLayer(kind,extra){
   S.layers[S.face].push(l); S.sel=l.id;
   build(); renderPanel(); if(S.view==='flat') drawFlat();
   return l;
+}
+/* inserta una composición completa (plantilla) en una sola acción */
+function addLayersBatch(list){
+  snap();
+  const p=panelSize(); let last=null;
+  list.forEach(extra=>{
+    const kind=extra.kind||'text';
+    const base={id:uid(),kind,x:0,y:Math.round(p.h*0.28),rot:0,op:1,blend:'normal'};
+    const l=Object.assign(base,
+      kind==='text'?{text:'TEXTO',size:6,font:'Archivo',weight:800,track:.2,color:'#14161a'}:
+      kind==='shape'?{shape:'rect',w:14,h:14,color:'#14161a'}:{w:20,h:20},extra);
+    S.layers[S.face].push(l); last=l;
+  });
+  if(last) S.sel=last.id;
+  build(); renderPanel(); if(S.view==='flat') drawFlat();
+}
+/* color de arte legible sobre el color de cuerpo actual */
+function inkOnBody(){
+  const c=(S.colors.cuerpo||'#e3ddcd').replace('#','');
+  const r=parseInt(c.slice(0,2),16), g=parseInt(c.slice(2,4),16), b=parseInt(c.slice(4,6),16);
+  return (0.299*r+0.587*g+0.114*b) > 140 ? '#14161a' : '#f2efe6';
 }
 
 function bindPanel(){
@@ -1495,6 +1586,17 @@ const ACT = {
   cwSave(){ CW.push(Object.assign({n:'CW'+(CW.length+1)},S.colors)); renderCW(); },
   addText(){ addLayer('text'); },
   addShape(){ addLayer('shape'); },
+  /* --- plantillas de estampación (posiciones estándar) --- */
+  tplCenter(){ const p=panelSize(); addLayersBatch([{text:'PATRÓN',size:clamp(+(p.w*0.24).toFixed(1),6,28),x:0,y:+(p.h*0.34).toFixed(1),track:.4,color:inkOnBody()}]); },
+  tplLeftChest(){ const p=panelSize(), top=isTop(); addLayersBatch([{text:'LOGO',size:top?4:5,x:top?-11:-(+(p.w*0.24).toFixed(1)),y:top?19:+(p.h*0.32).toFixed(1),track:.2,color:inkOnBody()}]); },
+  tplStack(){ const p=panelSize(); addLayersBatch([
+    {text:'DROP 01',size:clamp(+(p.w*0.17).toFixed(1),5,22),x:0,y:+(p.h*0.30).toFixed(1),track:.3,color:inkOnBody()},
+    {text:S.meta.temporada||'AW26',size:clamp(+(p.w*0.07).toFixed(1),2.5,9),x:0,y:+(p.h*0.42).toFixed(1),track:1.2,color:inkOnBody()}]); },
+  tplVertical(){ const p=panelSize(); addLayersBatch([{text:'S T R E E T W E A R',size:clamp(+(p.w*0.05).toFixed(1),2.5,6),x:+(p.w*0.34).toFixed(1),y:+(p.h*0.5).toFixed(1),rot:90,track:.6,color:inkOnBody()}]); },
+  tplOutline(){ const p=panelSize(); addLayersBatch([{text:'OVERSIZE',size:clamp(+(p.w*0.19).toFixed(1),6,24),x:0,y:+(p.h*0.34).toFixed(1),track:.3,color:S.colors.cuerpo,outline:.45,ocolor:inkOnBody()}]); },
+  tplBadge(){ const p=panelSize(); const y=+(p.h*0.33).toFixed(1); addLayersBatch([
+    {kind:'shape',shape:'circle',w:clamp(+(p.w*0.5).toFixed(1),14,34),h:clamp(+(p.w*0.5).toFixed(1),14,34),x:0,y,color:inkOnBody()},
+    {text:'★',size:clamp(+(p.w*0.14).toFixed(1),5,16),x:0,y,color:S.colors.cuerpo}]); },
   addImg(){
     const f=$('#fileImg'); f.click();
     f.onchange=()=>{
@@ -1527,6 +1629,26 @@ const ACT = {
       img.src=shot(i*360/N);
     };
     step();
+  },
+  async video(){
+    const cv=renderer.domElement;
+    if(!cv.captureStream || typeof MediaRecorder==='undefined'){ toast('Este navegador no permite grabar vídeo'); return; }
+    const mime=['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm'].find(t=>{try{return MediaRecorder.isTypeSupported(t);}catch(e){return false;}});
+    if(!mime){ toast('Formato de vídeo no soportado aquí'); return; }
+    toast('Grabando giro 360°…');
+    const prevSpin=spinning; spinning=false; syncSpin(); capturing=true;
+    const stream=cv.captureStream(30);
+    const rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:12000000});
+    const chunks=[]; rec.ondataavailable=e=>{ if(e.data&&e.data.size) chunks.push(e.data); };
+    const stopped=new Promise(r=>rec.onstop=r);
+    const y0=root.rotation.y; drag.ry=y0; rec.start();
+    const dur=4200, t0=performance.now();
+    await new Promise(res=>{ (function step(){ const k=Math.min(1,(performance.now()-t0)/dur);
+      drag.ry=y0 - k*Math.PI*2; k<1?requestAnimationFrame(step):res(); })(); });
+    await new Promise(r=>setTimeout(r,150));
+    rec.stop(); await stopped;
+    capturing=false; spinning=prevSpin; syncSpin();
+    download(`${S.meta.codigo}-360.webm`, URL.createObjectURL(new Blob(chunks,{type:mime})));
   },
   pngFlat(){
     const prev=S.view; S.view='flat'; layoutFlat(); drawFlat();
